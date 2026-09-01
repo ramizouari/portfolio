@@ -14,8 +14,8 @@
 
 	let { data }: PageProps = $props();
 
-	const current = roles[0];
-	const preview = featuredProjects.slice(0, 5);
+	const current = roles.filter((r) => r.end === 'present');
+	const preview = featuredProjects.slice(0, 6);
 	const problemsAuthored = 58;
 </script>
 
@@ -84,64 +84,35 @@
 </section>
 
 <!-- ── Now ──────────────────────────────────────────────────────────────── -->
-<section class="section shell-wide">
-	<Reveal>
-		<div class="now">
-			<div class="now-side">
-				<p class="eyebrow">Currently</p>
-				<p class="now-role">{current.title}</p>
-				<p class="now-company">{current.company}</p>
-				<p class="mono now-period">{current.period}</p>
-			</div>
-			<div class="now-main">
-				<p class="now-lede">{current.summary}</p>
-				<ul class="now-list">
-					{#each current.highlights.slice(0, 3) as item, i (i)}
-						<li>{item}</li>
-					{/each}
-				</ul>
-				<div class="now-stack">
-					{#each current.stack as tool (tool)}
-						<Pill>{tool}</Pill>
-					{/each}
-				</div>
-			</div>
-		</div>
-	</Reveal>
-</section>
+<section class="section now-section shell-wide">
+	<p class="eyebrow now-label">Currently</p>
 
-<hr class="rule shell-wide" />
-
-<!-- ── Research ─────────────────────────────────────────────────────────── -->
-<section class="section shell-wide">
-	<SectionHead
-		eyebrow="01 — Research"
-		title="Four things I keep coming back to"
-		lede="Continuous-time generative models, transport between distributions, decision-making under non-stationarity, and games on graphs. Different fields; the same instinct to write the problem down properly before writing any code."
-		more={{ href: '/research/', label: 'All threads' }}
-	/>
-
-	<ol class="threads">
-		{#each threads as thread, i (thread.slug)}
-			<Reveal as="li" delay={i * 60}>
-				<a class="thread" href="{resolve('/research/')}#{thread.slug}">
-					<span class="thread-idx mono">{thread.index}</span>
-					<div class="thread-body">
-						<h3>{thread.title}</h3>
-						<p class="thread-kicker">{thread.kicker}</p>
-						<div class="thread-meta">
-							<span class="mono">{thread.context}</span>
-							<span class="dot" aria-hidden="true">·</span>
-							<span class="mono">{thread.period}</span>
+	<div class="now-roles">
+		{#each current as role, i (role.company)}
+			<Reveal delay={i * 70}>
+				<div class="now">
+					<div class="now-side">
+						<p class="now-role">{role.title}</p>
+						<p class="now-company">{role.company}</p>
+						<p class="mono now-period">{role.period}</p>
+					</div>
+					<div class="now-main">
+						<p class="now-lede">{role.summary}</p>
+						<ul class="now-list">
+							{#each role.highlights.slice(0, 2) as item (item)}
+								<li>{item}</li>
+							{/each}
+						</ul>
+						<div class="now-stack">
+							{#each role.stack as tool (tool)}
+								<Pill>{tool}</Pill>
+							{/each}
 						</div>
 					</div>
-					<div class="thread-eq" aria-hidden="true">
-						<Tex html={data.signatures[thread.slug]} label={thread.signature} />
-					</div>
-				</a>
+				</div>
 			</Reveal>
 		{/each}
-	</ol>
+	</div>
 </section>
 
 <hr class="rule shell-wide" />
@@ -149,7 +120,7 @@
 <!-- ── Work ─────────────────────────────────────────────────────────────── -->
 <section class="section shell-wide">
 	<SectionHead
-		eyebrow="02 — Selected work"
+		eyebrow="01 — Selected work"
 		title="Systems that had to survive contact with reality"
 		lede="Research pipelines, LLM platforms and native tooling. Most of it is closed source; what follows is what I built and why it was hard."
 		more={{ href: '/work/', label: 'All work' }}
@@ -173,6 +144,40 @@
 							stroke-linejoin="round"
 						/>
 					</svg>
+				</a>
+			</Reveal>
+		{/each}
+	</ol>
+</section>
+
+<hr class="rule shell-wide" />
+
+<!-- ── Research ─────────────────────────────────────────────────────────── -->
+<section class="section shell-wide">
+	<SectionHead
+		eyebrow="02 — Research"
+		title="Four things I keep coming back to"
+		lede="Continuous-time generative models, transport between distributions, decision-making under non-stationarity, and games on graphs. Different fields; the same instinct to write the problem down properly before writing any code."
+		more={{ href: '/research/', label: 'All threads' }}
+	/>
+
+	<ol class="threads">
+		{#each threads as thread, i (thread.slug)}
+			<Reveal as="li" delay={i * 60}>
+				<a class="thread" href="{resolve('/research/')}#{thread.slug}">
+					<span class="thread-idx mono">{thread.index}</span>
+					<div class="thread-body">
+						<h3>{thread.title}</h3>
+						<p class="thread-kicker">{thread.kicker}</p>
+						<div class="thread-meta">
+							<span class="mono">{thread.context}</span>
+							<span class="dot" aria-hidden="true">·</span>
+							<span class="mono">{thread.period}</span>
+						</div>
+					</div>
+					<div class="thread-eq" aria-hidden="true">
+						<Tex html={data.signatures[thread.slug]} label={thread.signature} />
+					</div>
 				</a>
 			</Reveal>
 		{/each}
@@ -424,6 +429,25 @@
 	}
 
 	/* ── Now ─────────────────────────────────────────────────────────────── */
+	.now-section {
+		/* The last role already ends on a rule, so it needs less room below. */
+		padding-bottom: var(--space-xl);
+	}
+
+	.now-label {
+		padding-bottom: var(--space-l);
+	}
+
+	.now-roles {
+		display: grid;
+		border-top: 1px solid var(--line);
+	}
+
+	.now-roles > :global(*) {
+		padding-block: var(--space-l);
+		border-bottom: 1px solid var(--line);
+	}
+
 	.now {
 		display: grid;
 		gap: var(--space-l);
@@ -436,7 +460,6 @@
 	}
 
 	.now-role {
-		margin-top: var(--space-s);
 		font-family: var(--font-display);
 		font-size: var(--step-2);
 		line-height: 1.15;

@@ -19,6 +19,52 @@ export type Project = {
 
 export const projects: Project[] = [
 	{
+		slug: 'rl-trading',
+		name: 'RL trading framework',
+		kicker: 'Build the instrument first, then the agent',
+		year: '2026 — present',
+		org: 'RobotBulls',
+		domain: 'research',
+		featured: true,
+		visibility: 'private',
+		summary:
+			'One environment core behind both Gymnasium and TorchRL, a tensorised batched environment, technical indicators that behave identically in backtest and live, online supervised learners, and the risk-aware agents built on top.',
+		role: 'Architecture, environments, indicator layer, online learning, training framework, diagnostics.',
+		problem: `Every trading experiment needs the same primitives — a market, a portfolio, indicators,
+			a replay buffer, a trainer — and rebuilding them per experiment is how two implementations
+			quietly diverge and a result stops meaning anything. Worse, an agent trained on market data
+			converges on doing nothing, or on a persistent directional bias, and both look like reasonable
+			behaviour until you audit the training loop. So the framework comes first, and the agent is
+			judged against something that can actually be trusted.`,
+		approach: [
+			'Implemented the environment twice against one shared core — a Gymnasium environment and a TorchRL environment — so market, portfolio, reward and window logic live in one place and both stacks stay in step.',
+			'Built the tensorised TorchRL environment: batched lanes stepped together on device, stacked-frame transforms, subwindow generators, and a nested ParallelEnv/SerialEnv layout that groups a long list of env constructors into the process budget the hardware actually has.',
+			'Migrated the Trading GO agent onto TorchRL in full, retiring the legacy namespace rather than maintaining two implementations.',
+			'Designed the technical-indicator layer around two execution modes behind one interface — streaming for live stepping, precalculated-and-replayed for backtests, with groups that mix both and a shared warm-up contract — then added a torch-native batched implementation with per-lane readiness, replay cursors and CUDA tests.',
+			'Added online supervised learners: replay buffers with explicit data policies and stable feature ordering, flattening preprocessors, and signal modules that let auxiliary predictors keep training alongside the policy.',
+			'Put a risk network in front of action selection so risk aversion is a property of the acting agent, not a coefficient the return can learn to pay off, and added safe-action mixins for position inversion and forced closes.',
+			'Traced trade scarcity and long/short imbalance to six concrete defects — exploration that sampled an action then discarded it, replay storing the post-gate action, a reward computed against a different action than the one being trained on, an epsilon schedule that collapsed inside one episode, auxiliary models reset every episode, and ensemble weights updated from the ensemble’s own output.',
+			'Wrote a C++23 header-only synthetic market to test against known dynamics: streaming coroutine paths, Markov-switching jump diffusion, pluggable regime and jump processes, correlated assets and reverse-time generation.'
+		],
+		outcome:
+			'The framework is in place and under test. The profitable agent it exists for is the work in progress.',
+		stack: [
+			'PyTorch',
+			'TorchRL',
+			'TensorDict',
+			'Gymnasium',
+			'LightGBM',
+			'XGBoost',
+			'C++23',
+			'TensorBoard'
+		],
+		metrics: [
+			{ value: '2', label: 'RL stacks, one core' },
+			{ value: '2', label: 'indicator execution modes' },
+			{ value: '6', label: 'root causes isolated' }
+		]
+	},
+	{
 		slug: 'compass',
 		name: 'COMPASS',
 		kicker: 'Latent jump ODEs for synthetic patient trajectories',
@@ -80,41 +126,41 @@ export const projects: Project[] = [
 		]
 	},
 	{
-		slug: 'text2sql',
-		name: 'Text2SQL & ChatSQL',
-		kicker: 'From natural language to executable SQL, and the product on top',
-		year: '2024 — 2025',
-		org: 'ConvergenceAI',
+		slug: 'naomi',
+		name: 'Naomi',
+		kicker: 'A wellness companion that is not allowed to improvise',
+		year: '2026',
+		org: 'Now For Women',
 		domain: 'platform',
 		featured: true,
 		visibility: 'private',
 		summary:
-			'A modular, LLM-agnostic pipeline that turns a question and a database schema into SQL — with schema linking, example selection, reflexion and evaluation — plus the product built around it.',
-		role: 'Pipeline architecture, selector and reflexion layers, evaluation harness, full-stack product work.',
-		problem: `Text2SQL degrades badly on real schemas: hundreds of tables, ambiguous column names, and
-			questions that do not map cleanly onto one query. A monolithic prompt cannot be measured, and what
-			cannot be measured cannot be improved.`,
+			'An in-app companion for women 40+ that grounds every answer in the user’s own assessment, wellness plan and long-term memory — and refuses to free-form medical advice.',
+		role: 'Full-stack — orchestration, prompt architecture, assessment reporting and the mobile client.',
+		problem: `A health companion that hallucinates is worse than no companion. The hard part is not
+			generation; it is guaranteeing that every claim traces back to something the user actually
+			answered, and that the labels the assistant uses match the labels in the report they are
+			looking at.`,
 		approach: [
-			'Split the pipeline into named layers — question reformulation, example generation, schema linking, generation, reflexion — each producing a typed artifact that can be cached, inspected and scored independently.',
-			'Built two families of selectors, SQL-based and index-based, and a minimal-schema extractor that computes the smallest schema on which a query is well formed.',
-			'Added a reflexion layer that evaluates generated SQL and repairs it, with per-column status tracking.',
-			'Wrote the evaluation pipeline as an Azure Function with comprehensive metrics, budgeted to answer within 30 seconds.',
-			'Shipped ChatSQL — Django + Svelte, with auth, Stripe subscriptions, conversation history, golden-SQL management and a PWA shell.'
+			'Built an orchestrator with keyword intent detection routing to per-intent response templates, and a strict section order for the assembled prompt.',
+			'Retrieved RAG context only for informational intents, keeping it explicitly supporting rather than authoritative, with the wellness plan as the source of truth.',
+			'Layered memory: Redis for the working set, Postgres for long-term, with a memory delta extracted and saved on every turn.',
+			'Added an output validator running editorial and safety checks before the reply is persisted — no invented headings, no new percentages, no blended domain names.',
+			'Implemented the assessment report, wellness-readiness profile and the mobile screens that render them.'
 		],
-		outcome: 'Component-level improvements of up to 20% on the benchmark suite.',
 		stack: [
 			'Python',
-			'OpenAI',
-			'SQLGlot',
 			'FastAPI',
-			'Django',
-			'Svelte',
-			'Azure Functions',
-			'MongoDB'
+			'AWS Bedrock (Claude)',
+			'Postgres',
+			'Redis',
+			'React Native',
+			'Next.js',
+			'TypeScript'
 		],
 		metrics: [
-			{ value: '20%', label: 'component improvement' },
-			{ value: '<30s', label: 'evaluation budget' }
+			{ value: '7', label: 'life domains scored' },
+			{ value: '8', label: 'prompt sections, ordered' }
 		]
 	},
 	{
@@ -155,69 +201,41 @@ export const projects: Project[] = [
 		]
 	},
 	{
-		slug: 'naomi',
-		name: 'Naomi',
-		kicker: 'A wellness companion that is not allowed to improvise',
-		year: '2026',
-		org: 'Now For Women',
+		slug: 'text2sql',
+		name: 'Text2SQL & ChatSQL',
+		kicker: 'From natural language to executable SQL, and the product on top',
+		year: '2024 — 2025',
+		org: 'ConvergenceAI',
 		domain: 'platform',
 		featured: true,
 		visibility: 'private',
 		summary:
-			'An in-app companion for women 40+ that grounds every answer in the user’s own assessment, wellness plan and long-term memory — and refuses to free-form medical advice.',
-		role: 'Full-stack — orchestration, prompt architecture, assessment reporting and the mobile client.',
-		problem: `A health companion that hallucinates is worse than no companion. The hard part is not
-			generation; it is guaranteeing that every claim traces back to something the user actually
-			answered, and that the labels the assistant uses match the labels in the report they are
-			looking at.`,
+			'A modular, LLM-agnostic pipeline that turns a question and a database schema into SQL — with schema linking, example selection, reflexion and evaluation — plus the product built around it.',
+		role: 'Pipeline architecture, selector and reflexion layers, evaluation harness, full-stack product work.',
+		problem: `Text2SQL degrades badly on real schemas: hundreds of tables, ambiguous column names, and
+			questions that do not map cleanly onto one query. A monolithic prompt cannot be measured, and what
+			cannot be measured cannot be improved.`,
 		approach: [
-			'Built an orchestrator with keyword intent detection routing to per-intent response templates, and a strict section order for the assembled prompt.',
-			'Retrieved RAG context only for informational intents, keeping it explicitly supporting rather than authoritative, with the wellness plan as the source of truth.',
-			'Layered memory: Redis for the working set, Postgres for long-term, with a memory delta extracted and saved on every turn.',
-			'Added an output validator running editorial and safety checks before the reply is persisted — no invented headings, no new percentages, no blended domain names.',
-			'Implemented the assessment report, wellness-readiness profile and the mobile screens that render them.'
+			'Split the pipeline into named layers — question reformulation, example generation, schema linking, generation, reflexion — each producing a typed artifact that can be cached, inspected and scored independently.',
+			'Built two families of selectors, SQL-based and index-based, and a minimal-schema extractor that computes the smallest schema on which a query is well formed.',
+			'Added a reflexion layer that evaluates generated SQL and repairs it, with per-column status tracking.',
+			'Wrote the evaluation pipeline as an Azure Function with comprehensive metrics, budgeted to answer within 30 seconds.',
+			'Shipped ChatSQL — Django + Svelte, with auth, Stripe subscriptions, conversation history, golden-SQL management and a PWA shell.'
 		],
+		outcome: 'Component-level improvements of up to 20% on the benchmark suite.',
 		stack: [
 			'Python',
+			'OpenAI',
+			'SQLGlot',
 			'FastAPI',
-			'AWS Bedrock (Claude)',
-			'Postgres',
-			'Redis',
-			'React Native',
-			'Next.js',
-			'TypeScript'
+			'Django',
+			'Svelte',
+			'Azure Functions',
+			'MongoDB'
 		],
 		metrics: [
-			{ value: '7', label: 'life domains scored' },
-			{ value: '8', label: 'prompt sections, ordered' }
-		]
-	},
-	{
-		slug: 'rl-trading',
-		name: 'Risk-aware RL trading agents',
-		kicker: 'Ensembles, regimes and a policy that has to justify itself',
-		year: '2026',
-		org: 'RobotBulls',
-		domain: 'research',
-		featured: true,
-		visibility: 'private',
-		summary:
-			'A modular reinforcement-learning stack for trading: risk-gated action selection, ensemble predictors, online regime classifiers, and a synthetic market to test against.',
-		role: 'Architecture, training framework, diagnostics.',
-		problem: `Agents trained on market data converge on doing nothing, or on a persistent directional
-			bias, and both look like reasonable behaviour until you audit the training loop.`,
-		approach: [
-			'Introduced a trainer hierarchy separating the environment, the ensemble actor, the risk network and the action selector, so each can be replaced or ablated.',
-			'Added a risk network that gates action selection ahead of the policy, plus safe-action selector mixins for position inversion and forced closes.',
-			'Made technical indicators torch-native and batched, with CUDA tests, so training, evaluation and rollout share one feature implementation.',
-			'Built online preprocessors and a replay buffer with explicit data policies and stable feature ordering.',
-			'Traced trade scarcity and long/short imbalance to six concrete defects in exploration, replay, reward alignment, epsilon scheduling, ensemble resets and weight updates.',
-			'Wrote a C++23 header-only synthetic market: streaming coroutine paths, Markov-switching jump diffusion, pluggable regime and jump processes, correlated assets and reverse-time generation.'
-		],
-		stack: ['PyTorch', 'TorchRL', 'Gymnasium', 'LightGBM', 'XGBoost', 'C++23', 'TensorBoard'],
-		metrics: [
-			{ value: '6', label: 'root causes isolated' },
-			{ value: 'C++23', label: 'synthetic market library' }
+			{ value: '20%', label: 'component improvement' },
+			{ value: '<30s', label: 'evaluation budget' }
 		]
 	},
 	{

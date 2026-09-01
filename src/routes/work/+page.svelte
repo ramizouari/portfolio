@@ -29,7 +29,7 @@
 </svelte:head>
 
 <header class="page-head shell-wide">
-	<p class="eyebrow">02 — Work</p>
+	<p class="eyebrow">01 — Work</p>
 	<h1>Work</h1>
 	<p class="lede">
 		Research groups, start-ups and one HPC cluster. Below: where I have been, and then the projects

@@ -37,8 +37,8 @@ export const profile = {
 export type NavLink = { href: Pathname; label: string; index: string };
 
 export const navLinks: NavLink[] = [
-	{ href: '/research/', label: 'Research', index: '01' },
-	{ href: '/work/', label: 'Work', index: '02' },
+	{ href: '/work/', label: 'Work', index: '01' },
+	{ href: '/research/', label: 'Research', index: '02' },
 	{ href: '/algorithms/', label: 'Algorithms', index: '03' },
 	{ href: '/about/', label: 'About', index: '04' }
 ];

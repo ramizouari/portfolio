@@ -20,7 +20,7 @@
 </svelte:head>
 
 <header class="page-head shell-wide">
-	<p class="eyebrow">01 — Research</p>
+	<p class="eyebrow">02 — Research</p>
 	<h1>Research</h1>
 	<p class="lede">
 		I work at the point where a modelling assumption becomes a line of code. These are the four
@@ -132,9 +132,9 @@
 <section class="outro shell-wide">
 	<Reveal>
 		<p class="eyebrow">Next</p>
-		<h2>The systems these ideas ended up inside.</h2>
-		<a class="btn" href={resolve('/work/')}>
-			Selected work
+		<h2>Where the habit of stating things precisely came from.</h2>
+		<a class="btn" href={resolve('/algorithms/')}>
+			Algorithms
 			<svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
 				<path
 					d="M2 8h11M9 4l4 4-4 4"

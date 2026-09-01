@@ -13,6 +13,35 @@ export type Role = {
 
 export const roles: Role[] = [
 	{
+		company: 'RobotBulls',
+		title: 'Reinforcement Learning Engineer',
+		period: 'Apr 2026 — present',
+		start: '2026-04',
+		end: 'present',
+		location: 'Remote',
+		kind: 'research',
+		summary:
+			'Building a reinforcement-learning framework for trading — environments, indicators, online learners, agents — and then the profitable agent it exists for.',
+		highlights: [
+			'Implemented the trading environment twice against one shared core: a Gymnasium environment and a TorchRL environment, so the same market, portfolio and reward logic drives both stacks instead of drifting apart.',
+			'Built the tensorised TorchRL environment — batched lanes stepped together on device, with stacked-frame transforms, subwindow sampling and a nested ParallelEnv/SerialEnv layout that respects the process budget.',
+			'Migrated the Trading GO agent onto TorchRL in full, moving the legacy modules into a new namespace rather than maintaining two divergent implementations.',
+			'Designed the technical-indicator layer around two execution modes behind one interface — streaming indicators that advance one observation at a time for live stepping, and precalculated indicators that compute eagerly over a fixed history and replay — plus a torch-native batched implementation with CUDA tests.',
+			'Added online supervised learners with their own replay buffers, preprocessors and signal modules, so auxiliary predictors keep learning alongside the policy instead of being frozen before it.',
+			'Wrote a C++23 header-only synthetic market for testing against known dynamics: streaming coroutine paths, Markov-switching jump diffusion, pluggable regime and jump processes, correlated assets and reverse-time generation.'
+		],
+		stack: [
+			'PyTorch',
+			'TorchRL',
+			'TensorDict',
+			'Gymnasium',
+			'LightGBM',
+			'XGBoost',
+			'C++23',
+			'TensorBoard'
+		]
+	},
+	{
 		company: 'InovIntell',
 		title: 'Artificial Intelligence Engineer',
 		period: 'May 2025 — present',

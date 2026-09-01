@@ -182,12 +182,14 @@ export const threads: Thread[] = [
 		title: 'Reinforcement learning under non-stationarity',
 		kicker: 'Agents that trade, and the derivations that keep them honest',
 		period: '2026 — present',
-		context: 'RobotBulls · personal research',
+		context: 'RobotBulls',
 		abstract: `A trading agent is an easy thing to build badly. The reward is noisy, the environment is
 			non-stationary, and almost every plausible design decision quietly biases the policy toward doing
-			nothing. I approached it from the other end: derive the wealth process properly, choose an action
-			space with the invariances you actually want, and then treat pathological behaviour as a
-			diagnosable defect rather than a hyper-parameter to tune.`,
+			nothing. I approached it from the other end: build the instrument before the experiment — one
+			environment core, indicators that behave identically in backtest and live, learners that keep
+			learning — then derive the wealth process properly, choose an action space with the invariances
+			you actually want, and treat pathological behaviour as a diagnosable defect rather than a
+			hyper-parameter to tune.`,
 		equations: [
 			{
 				tex: String.raw`\mathrm{d}W_t \;=\; \mathrm{d}C_t + P_t\,\mathrm{d}S_t + S_t\,\mathrm{d}P_t + \mathrm{d}[S,P]_t, \qquad [S,P]_t = 0 \ \text{a.s.}`,
@@ -207,6 +209,21 @@ export const threads: Thread[] = [
 		],
 		points: [
 			{
+				heading: 'One environment core, two stacks',
+				body: `The trading environment is implemented against a shared core and exposed twice — as a
+					Gymnasium environment and as a TorchRL environment — so market, portfolio, reward and window
+					logic live in one place. The TorchRL side is tensorised: batched lanes stepped together on
+					device, with stacked-frame transforms and a nested parallel layout that fits the process
+					budget the hardware actually has.`
+			},
+			{
+				heading: 'Indicators that do not lie between backtest and live',
+				body: `The same indicator has to be computable one observation at a time when the agent is
+					stepping, and eagerly over a fixed history when it is being backtested. Both modes sit behind
+					one interface with a shared warm-up contract, so a group can mix them; a torch-native batched
+					implementation carries per-lane readiness and replay cursors, and is tested on CUDA.`
+			},
+			{
 				heading: 'Scale-invariant, symmetric actions',
 				body: `Actions are a signed fraction of gross market value rather than a share count. The agent
 					learns capital allocation, behaves consistently across account sizes, treats long and short
@@ -221,23 +238,21 @@ export const threads: Thread[] = [
 					auxiliary models reset every episode, and ensemble weights updated from the ensemble’s own output.`
 			},
 			{
-				heading: 'Risk as a gate, not a term',
+				heading: 'Risk as a gate, and learners that keep learning',
 				body: `A risk network gates action selection ahead of the policy, so risk aversion is a property
-					of the acting agent rather than a coefficient the return can learn to pay off.`
-			},
-			{
-				heading: 'Regimes, online',
-				body: `Market-regime classifiers run online alongside the policy, feeding a torch-native technical
-					indicator interface so that the same feature code serves training, evaluation and live rollout.`
+					of the acting agent rather than a coefficient the return can learn to pay off. Alongside it,
+					online supervised learners carry their own buffers and preprocessors, so the auxiliary
+					predictors adapt with the policy instead of being frozen before it.`
 			}
 		],
 		keywords: [
 			'reinforcement learning',
+			'TorchRL',
 			'semimartingales',
 			'DQN',
 			'ensembles',
 			'regime detection',
-			'TorchRL'
+			'online learning'
 		],
 		artifacts: [
 			{
