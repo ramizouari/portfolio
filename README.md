@@ -27,16 +27,18 @@ npm run dev        # http://localhost:5173
 
 ## Editing the content
 
-Every word on the site comes from one of six typed modules. Nothing is hardcoded
-in markup, so adding a project or a role is a data edit, not a layout edit.
+Every word on the site comes from one of seven typed modules. Nothing is
+hardcoded in markup, so adding a project or a role is a data edit, not a layout
+edit.
 
 | File                         | Drives                                                            |
 | ---------------------------- | ----------------------------------------------------------------- |
 | `src/lib/data/profile.ts`    | Name, role, tagline, contact, hero stats, nav                     |
-| `src/lib/data/research.ts`   | The four research threads: abstracts, equations, artifacts        |
+| `src/lib/data/research.ts`   | The research threads and the publication list                     |
 | `src/lib/data/projects.ts`   | Project index and every `/projects/<slug>` page                   |
 | `src/lib/data/experience.ts` | Work timeline and education                                       |
 | `src/lib/data/algorithms.ts` | ICPC medals, contests set, topic taxonomy, judging infrastructure |
+| `src/lib/data/problems.ts`   | Selected problems set, and every `/problems/<slug>` page          |
 | `src/lib/data/skills.ts`     | Toolkit groups and languages                                      |
 
 ### Adding a project
@@ -46,15 +48,29 @@ the URL, `featured: true` promotes it to the home page, and the detail page is
 prerendered automatically — `entries()` in `src/routes/projects/[slug]/+page.ts`
 enumerates the array at build time.
 
+### Adding a problem
+
+Append an entry to `problems` in `src/lib/data/problems.ts`. It appears in the
+grid under _Selected problems_ on `/algorithms/` and gets its own prerendered
+page. `statement`, `reduction` and each idea's `body` are prose: they accept
+inline `$maths$`, `` `code` `` and `*emphasis*`, all resolved at build time by
+`renderProse` in `src/lib/server/tex.ts`.
+
 ### Equations
 
-Written as raw LaTeX in `research.ts` and rendered by KaTeX at build time.
-Use `String.raw` so backslashes survive. Each thread carries a `signature` — a
-short form used in the narrow column on the home page — alongside the full
-`equations` array.
+Written as raw LaTeX in `research.ts` and `problems.ts`, and rendered by KaTeX
+at build time. Use `String.raw` so backslashes survive. Research threads and
+problems each carry a `signature` — the short form used in narrow columns —
+alongside their full equations.
+
+KaTeX itself never reaches the browser: the pages that carry maths have a
+`+page.server.ts` that renders it during the build, so the client bundle stays
+clear of the 266 kB library.
 
 `<Tex>` shrinks the type until the equation fits its column, so long expressions
-stay whole on a phone rather than being cut off.
+stay whole on a phone rather than being cut off. Past roughly 60 characters,
+break the expression across lines with `\begin{aligned}` rather than relying on
+the shrink.
 
 ---
 
@@ -128,10 +144,11 @@ src/
 └── routes/
     ├── +layout.svelte       shell, head tags
     ├── +page.svelte         home
-    ├── research/            the four threads
+    ├── research/            threads + publications
     ├── work/                timeline + project index
     ├── projects/[slug]/     per-project pages
-    ├── algorithms/          medals, contests, CPLibrary, infrastructure
+    ├── algorithms/          medals, contests, problems, CPLibrary, infrastructure
+    ├── problems/[slug]/     per-problem statement + solution
     ├── about/               bio, education, toolkit
     ├── sitemap.xml/         prerendered
     └── robots.txt/          prerendered

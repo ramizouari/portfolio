@@ -1,8 +1,14 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import Reveal from '$lib/components/Reveal.svelte';
 	import Code from '$lib/components/Code.svelte';
+	import Tex from '$lib/components/Tex.svelte';
 	import { awards, contests, topics, infrastructure } from '$lib/data/algorithms';
+	import { problems } from '$lib/data/problems';
 	import { profile } from '$lib/data/profile';
+	import type { PageProps } from './$types';
+
+	let { data }: PageProps = $props();
 
 	const snippet = `
 // CPLibrary — a segment tree is not a sum tree. It is a tree over any
@@ -123,6 +129,52 @@ struct segment_tree
 
 <hr class="rule shell-wide" />
 
+<!-- ── Selected problems ────────────────────────────────────────────────── -->
+<section class="section shell-wide" id="problems">
+	<h2 class="section-title">Selected problems</h2>
+
+	<p class="lede problems-lede">
+		Ten I would set again. Each one is here in full — the statement as it was posed, and the
+		solution reduced to the ideas that actually carry it.
+	</p>
+
+	<ul class="problems">
+		{#each problems as problem, i (problem.slug)}
+			<Reveal as="li" delay={Math.min(i, 5) * 50}>
+				<a class="prob" href="{resolve('/problems/[slug]', { slug: problem.slug })}/">
+					<div class="prob-top">
+						<span class="mono prob-idx">{problem.index}</span>
+						<span class="mono prob-contest">{problem.contest}</span>
+					</div>
+
+					<h3>{problem.title}</h3>
+					<p class="prob-kicker">{problem.kicker}</p>
+
+					<div class="prob-sig">
+						<Tex html={data.math[problem.slug]} label={problem.signature} />
+					</div>
+
+					<div class="prob-foot">
+						<span class="prob-tags">{problem.tags.join(' · ')}</span>
+						<svg class="arrow" viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+							<path
+								d="M4 12L12 4M6 4h6v6"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.4"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							/>
+						</svg>
+					</div>
+				</a>
+			</Reveal>
+		{/each}
+	</ul>
+</section>
+
+<hr class="rule shell-wide" />
+
 <!-- ── Library ──────────────────────────────────────────────────────────── -->
 <section class="section shell-wide">
 	<h2 class="section-title">The library</h2>
@@ -217,6 +269,124 @@ struct segment_tree
 	.rule {
 		max-width: var(--shell-wide);
 		margin-inline: auto;
+	}
+
+	/* ── Selected problems ───────────────────────────────────────────────── */
+	.problems-lede {
+		max-width: 58ch;
+		margin-top: calc(-1 * var(--space-2xs));
+		margin-bottom: var(--space-l);
+	}
+
+	.problems {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: grid;
+		/* An `auto` track would size to the widest equation's min-content and
+		   push the page sideways on a phone. */
+		grid-template-columns: minmax(0, 1fr);
+		gap: var(--space-s);
+	}
+
+	.prob {
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+		min-width: 0;
+		gap: 0.5rem;
+		padding: var(--space-m);
+		border: 1px solid var(--line);
+		border-radius: var(--radius-lg);
+		background: var(--surface);
+		transition:
+			border-color var(--dur-fast) var(--ease),
+			background var(--dur-fast) var(--ease),
+			transform var(--dur-fast) var(--ease);
+	}
+
+	.prob:hover {
+		border-color: var(--accent-line);
+		background: var(--surface-2);
+		transform: translateY(-2px);
+	}
+
+	.prob-top {
+		display: flex;
+		justify-content: space-between;
+		gap: var(--space-s);
+		font-size: var(--step--2);
+	}
+
+	.prob-idx {
+		color: var(--fg-4);
+	}
+
+	.prob-contest {
+		color: var(--accent);
+	}
+
+	.prob h3 {
+		font-size: var(--step-2);
+		margin-top: 0.15rem;
+	}
+
+	.prob-kicker {
+		font-family: var(--font-display);
+		font-style: italic;
+		font-size: var(--step-0);
+		line-height: 1.4;
+		color: var(--fg-2);
+	}
+
+	/* The signature is decoration as much as content — it should not push the
+	   card taller than its neighbours, so it sits at a fixed small size. */
+	.prob-sig {
+		min-width: 0;
+		margin-top: auto;
+		padding-top: var(--space-s);
+		font-size: 0.82em;
+		color: var(--fg-3);
+	}
+
+	.prob-foot {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: var(--space-s);
+		padding-top: var(--space-2xs);
+	}
+
+	.prob-tags {
+		font-family: var(--font-mono);
+		font-size: var(--step--2);
+		line-height: 1.5;
+		color: var(--fg-4);
+	}
+
+	.arrow {
+		flex: none;
+		color: var(--fg-4);
+		transition:
+			color var(--dur-fast) var(--ease),
+			transform var(--dur-fast) var(--ease);
+	}
+
+	.prob:hover .arrow {
+		color: var(--accent);
+		transform: translate(2px, -2px);
+	}
+
+	@media (min-width: 58rem) {
+		.problems {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
+	@media (min-width: 88rem) {
+		.problems {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
 	}
 
 	/* ── Awards ──────────────────────────────────────────────────────────── */
