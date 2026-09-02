@@ -10,7 +10,7 @@
 	<title>About — {profile.name}</title>
 	<meta
 		name="description"
-		content="Rami Zouari — software engineer from INSAT, machine learning researcher, ICPC gold medalist. Skills, education and how to get in touch."
+		content="Rami Zouari — software engineer from INSAT, machine learning researcher, ICPC Finalist. Skills, education and how to get in touch."
 	/>
 </svelte:head>
 

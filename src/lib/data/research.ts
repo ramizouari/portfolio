@@ -19,12 +19,12 @@ export type Thread = {
 export const threads: Thread[] = [
 	{
 		slug: 'jump-odes',
-		signature: String.raw`\mathrm{d}y = f\,\mathrm{d}t + h\,\mathrm{d}N`,
 		index: '01',
 		title: 'Latent jump ODEs',
 		kicker: 'Continuous-time generative models that are allowed to break',
-		period: '2025 — present',
+		period: '2025 — 2026',
 		context: 'InovIntell · COMPASS',
+		signature: String.raw`\mathrm{d}y = f\,\mathrm{d}t + h\,\mathrm{d}N`,
 		abstract: `A patient trajectory is not smooth. Treatment lines start and stop, adverse events fire,
 			the patient dies. A neural ODE integrates a smooth vector field and cannot express any of that.
 			The fix is to integrate a state that follows an ODE between isolated instants and is displaced
@@ -40,7 +40,7 @@ export const threads: Thread[] = [
 			{
 				tex: String.raw`y = (z, \Lambda) \in \mathbb{R}^{L} \times \mathbb{R}^{K}, \qquad G(t,y) \;=\; y + P^{\top} h\big(t, Py\big)\,\mathrm{d}N`,
 				caption:
-					'Only the latent block z may jump. The cumulative hazard Λ must stay the integral of something, so the jump is scattered through a coordinate projection P rather than applied to the whole state.'
+					'Only the latent block z may jump. A cumulative hazard that jumped would no longer be the integral of anything and S(t) = exp(−Λ(t)) would stop meaning anything, so the jump is scattered through a coordinate projection P rather than applied to the whole state.'
 			},
 			{
 				tex: String.raw`\mathrm{d}\Lambda_{\mathcal{L}_{s,i}} \;=\; [\,m_\dagger = 0\,]\cdot[\,m_\ominus = 1\,]\cdot[\,c = i-1\,]\cdot g_{\mathcal{L}_{s,i}}\big(\chi(t), t\big)\,\mathrm{d}t`,
@@ -69,9 +69,11 @@ export const threads: Thread[] = [
 					the events were and how to transport the adjoint across each one.`
 			},
 			{
-				heading: 'Survival is a first-class citizen',
-				body: `Hazard heads, right-censoring, masked normalisation and an ELBO with a survival term let
-					the same model be scored against Kaplan–Meier curves rather than only against marginals.`
+				heading: 'Two mechanisms: replay at training, generate at sampling',
+				body: `Training conditions on the events that were actually observed and replays them at their
+					recorded times. Sampling has no such record, so the same model runs against a stochastic
+					mechanism that draws its own event times from the hazards it is integrating — the coupled
+					case, where every channel competes over the same clock.`
 			}
 		],
 		keywords: [
@@ -79,8 +81,8 @@ export const threads: Thread[] = [
 			'jump processes',
 			'càdlàg',
 			'adjoint sensitivity',
-			'survival analysis',
-			'variational inference'
+			'event detection',
+			'generative modelling'
 		],
 		artifacts: [
 			{
@@ -90,21 +92,97 @@ export const threads: Thread[] = [
 			},
 			{
 				label: 'multinode',
-				note: 'VAE building blocks: hazard heads, censoring, masking, ODE customisation.'
+				note: 'The jump VAE: fixed and stochastic jump mechanisms, the latent projection that keeps the hazards out of the jump, and the recurrent / terminal channel split.'
+			}
+		]
+	},
+	{
+		slug: 'survival-odes',
+		index: '02',
+		title: 'Survival latent ODEs',
+		kicker: 'Put the hazard inside the state, and the likelihood becomes computable',
+		period: '2025 — 2026',
+		context: 'InovIntell · COMPASS',
+		signature: String.raw`S(t) = e^{-\Lambda(t)}`,
+		abstract: `A latent ODE gives you a trajectory. It does not give you a likelihood over event
+			times, and without one there is nothing to train a survival model against. The fix is to stop
+			treating the cumulative hazard as something computed after the fact and make it part of the
+			integrated state, so the solver produces it to the same order of accuracy as the latent
+			trajectory itself — and everything downstream, the log-likelihood, the censoring, the survival
+			curve, follows from a quantity the model actually owns.`,
+		equations: [
+			{
+				tex: String.raw`\frac{\mathrm{d}}{\mathrm{d}t}\begin{pmatrix} z \\ \Lambda \end{pmatrix} = \begin{pmatrix} f_\theta(z) \\ h_\theta(z) \end{pmatrix}`,
+				caption:
+					'The state handed to the solver is the pair (z, Λ), started at Λ(0) = 0. The hazard head is literally the derivative of the cumulative hazard, held non-negative by a softplus — so Λ is non-decreasing and S(t) = exp(−Λ(t)) is a survival function by construction rather than by hope.'
+			},
+			{
+				tex: String.raw`\ell \;=\; \begin{cases} -\log h(T) + \Lambda(T), & \text{event at } T \\[2pt] \Lambda(C), & \text{censored at } C \end{cases}`,
+				caption:
+					'An observed event contributes its log-intensity plus the hazard accumulated up to it; a censored observation contributes only what accumulated before follow-up ended. Treating the two the same is the standard way to bias a survival model, and the loss refuses to.'
+			},
+			{
+				tex: String.raw`\mathcal{L} \;=\; \lVert M \odot (x - \hat{x}) \rVert^2 \;+\; \beta\, D_{\mathrm{KL}}\!\big(q \,\Vert\, p\big) \;+\; \lambda\, \ell_{\text{surv}}`,
+				caption:
+					'The survival term enters the ELBO with its own weight, alongside a reconstruction masked by M so that it only scores observations that were actually made.'
+			}
+		],
+		points: [
+			{
+				heading: 'The hazard belongs in the state',
+				body: `Augmenting the ODE with Λ means one solver call produces the trajectory and the
+					cumulative hazard together, consistently, at whatever tolerance the solver was given. A
+					hazard summed separately after the fact is a different quantity from the one the dynamics
+					imply, and the discrepancy shows up exactly where survival curves are read.`
+			},
+			{
+				heading: 'Right-censoring is the normal case',
+				body: `Most patients have not had the event when follow-up ends. The likelihood locates a
+					stopping index per instance — first event, first censoring mark, or the last step — and
+					integrates to there; an event coinciding with a censoring mark is suppressed and the
+					observation treated as censored, because that is what it is.`
+			},
+			{
+				heading: 'Terminal and recurrent channels',
+				body: `The hazard vector is not one number. It splits into terminal channels, which are
+					absorbing and admit at most one event per trajectory, and recurrent channels for adverse
+					events that can fire repeatedly. They need different likelihood treatment, and the model
+					carries the split explicitly rather than collapsing everything into a single time-to-event.`
+			},
+			{
+				heading: 'Masking, all the way down',
+				body: `Clinical data is missing in patterns that mean something. Masked reductions, mask
+					broadcasting and a masked ELBO make "not observed" propagate correctly through
+					normalisation, reconstruction and the survival term — so an absent measurement contributes
+					nothing rather than contributing a zero.`
+			}
+		],
+		keywords: [
+			'survival analysis',
+			'cumulative hazard',
+			'right-censoring',
+			'neural ODE',
+			'variational inference',
+			'masked losses'
+		],
+		artifacts: [
+			{
+				label: 'multinode',
+				note: 'The hazard-augmented node, the censored and masked survival log-likelihood, the survival-augmented ELBO, and the masked reduction machinery underneath them.'
 			},
 			{
 				label: 'synthetic_multinode',
-				note: 'Training, experiments and the phase-3 model specification.'
+				note: 'Training, Cox metrics, and the experiments that score the model against Kaplan–Meier curves rather than only against marginals.'
 			}
 		]
 	},
 	{
 		slug: 'optimal-transport',
 		signature: String.raw`\inf_{\gamma \in \Gamma(\mu,\nu)} \int c\,\mathrm{d}\gamma`,
-		index: '02',
+		index: '03',
 		title: 'Constrained optimal transport',
 		kicker: 'Moving a population onto statistics you can read, but data you cannot',
-		period: '2025 — present',
+		period: '2025 — 2026',
 		context: 'InovIntell · COMPASS',
 		abstract: `Comparing two clinical trials indirectly means making their populations comparable. You have
 			individual patient-level data for one trial and, for the other, only what was published: a mean,
@@ -178,7 +256,7 @@ export const threads: Thread[] = [
 	{
 		slug: 'reinforcement-learning',
 		signature: String.raw`\mathrm{d}W_t = S_t\,\mathrm{d}P_t - \alpha P_t \lvert \mathrm{d}S_t \rvert`,
-		index: '03',
+		index: '04',
 		title: 'Reinforcement learning under non-stationarity',
 		kicker: 'Agents that trade, and the derivations that keep them honest',
 		period: '2026 — present',
@@ -268,7 +346,7 @@ export const threads: Thread[] = [
 	{
 		slug: 'games-on-graphs',
 		signature: String.raw`\nu(v) = \sup_{\sigma}\ \inf_{\tau}\ \bar{w}(\sigma,\tau)`,
-		index: '04',
+		index: '05',
 		title: 'Learning to solve games on graphs',
 		kicker: 'Mean-payoff games, exact solvers, and self-play',
 		period: '2023',
@@ -304,5 +382,56 @@ export const threads: Thread[] = [
 				note: 'Agents that play stochastic games on graphs with reinforcement learning.'
 			}
 		]
+	}
+];
+
+export type Publication = {
+	title: string;
+	/** Vancouver-style author list, in order. */
+	authors: string[];
+	/** The entry in `authors` that is me, emphasised in the citation. */
+	self: string;
+	venue: string;
+	location: string;
+	date: string;
+	kind: string;
+	code: string;
+	status: string;
+	href: string;
+	topics: string[];
+	note: string;
+};
+
+export const publications: Publication[] = [
+	{
+		title:
+			'Synthetic patient trajectories from a generative machine-learning model: a framework for generating population-adjusted survival outcomes in chronic lymphocytic leukaemia',
+		authors: [
+			'Munir T',
+			'Sportoletti P',
+			'Mohseninejad L',
+			'Opat S',
+			'Chebuniaev I',
+			'Aballea S',
+			'Zouari R',
+			'Kreif N',
+			'Toumi M',
+			'Lefebure M',
+			'Williams R',
+			'Xu S',
+			'Frustaci AM',
+			'Ysebaert L',
+			'Shadman M'
+		],
+		self: 'Zouari R',
+		venue: 'ISPOR Europe 2026',
+		location: 'Vienna, Austria',
+		date: 'November 2026',
+		kind: 'Poster presentation',
+		code: 'MSR91',
+		status: 'Accepted',
+		href: 'https://www.ispor.org/heor-resources/presentations-database/presentation-cti/ispor-europe-2026/poster-session-2-5/synthetic-patient-trajectories-from-a-generative-machine-learning-model-a-framework-for-generating-population-adjusted-survival-outcomes-in-chronic-lymphocytic-leukaemia',
+		topics: ['Methodological & statistical research', 'Machine learning', 'Oncology'],
+		note: 'The COMPASS work: a latent ODE generative model with survival-aware components, combined with constrained optimal transport for population adjustment, generating synthetic patient trajectories to support population-adjusted indirect treatment comparisons and external control arms.'
 	}
 ];

@@ -34,7 +34,7 @@ struct segment_tree
 	<title>Algorithms — {profile.name}</title>
 	<meta
 		name="description"
-		content="ICPC gold medalist and problem setter: 58+ original competitive programming problems across four contests, plus the judging infrastructure and the C++ library behind them."
+		content="ICPC Finalist and problem setter: 58+ original competitive programming problems across four contests, plus the judging infrastructure and the C++ library behind them."
 	/>
 </svelte:head>
 
@@ -59,16 +59,13 @@ struct segment_tree
 					<span class="disc" aria-hidden="true"></span>
 					<div class="award-body">
 						<h3>{award.title}</h3>
+						{#if award.kind}<span class="award-kind">{award.kind}</span>{/if}
 						<p>{award.detail}</p>
 					</div>
 				</div>
 			</Reveal>
 		{/each}
 	</ol>
-	<p class="footnote">
-		Listed on my CV as an ICPC finalist — the regional medals above are the ones with a public
-		scoreboard.
-	</p>
 </section>
 
 <hr class="rule shell-wide" />
@@ -253,6 +250,11 @@ struct segment_tree
 		box-shadow: 0 0 0 3px var(--gold-soft);
 	}
 
+	[data-medal='finalist'] .disc {
+		background: var(--accent);
+		box-shadow: 0 0 0 3px var(--accent-soft);
+	}
+
 	[data-medal='silver'] .disc {
 		background: var(--fg-3);
 		box-shadow: 0 0 0 3px color-mix(in oklab, var(--fg-3) 18%, transparent);
@@ -264,21 +266,42 @@ struct segment_tree
 		box-shadow: none;
 	}
 
+	.award-body {
+		display: grid;
+		grid-template-columns: auto 1fr;
+		align-items: baseline;
+		gap: 0.1rem 0.7rem;
+	}
+
 	.award h3 {
 		font-size: var(--step-1);
 	}
 
-	.award p {
-		margin-top: 0.15rem;
-		font-size: var(--step--1);
+	[data-medal='finalist'] h3 {
+		font-size: var(--step-2);
+	}
+
+	.award-kind {
+		font-family: var(--font-mono);
+		font-size: var(--step--2);
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--gold);
+	}
+
+	[data-medal='finalist'] .award-kind {
+		color: var(--accent);
+	}
+
+	[data-medal='silver'] .award-kind {
 		color: var(--fg-3);
 	}
 
-	.footnote {
-		margin-top: var(--space-m);
-		font-size: var(--step--2);
-		color: var(--fg-4);
-		max-width: 54ch;
+	.award p {
+		grid-column: 1 / -1;
+		margin-top: 0.15rem;
+		font-size: var(--step--1);
+		color: var(--fg-3);
 	}
 
 	/* ── Contests ────────────────────────────────────────────────────────── */

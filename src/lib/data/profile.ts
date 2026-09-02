@@ -14,21 +14,27 @@ export const profile = {
 		'I build models of things that move — patient trajectories, market regimes, probability distributions — and the software that makes them run.',
 	intro: [
 		`I am a Machine Learning Engineer with a Software Engineering background, working where
-		 applied research meets production systems. Most of my current work sits in continuous-time
-		 generative modelling: neural ODEs augmented with jump processes, variational autoencoders
-		 with survival-aware objectives, and optimal transport under partial information.`,
+		 applied research meets production systems. I am currently building a reinforcement-learning
+		 framework for trading; before that, continuous-time generative modelling in oncology —
+		 neural ODEs augmented with jump processes, variational autoencoders with survival-aware
+		 objectives, and optimal transport under partial information.`,
 		`Before that I spent six months at TU Dresden on deep reinforcement learning for mean-payoff
 		 games on graphs, and several years building Text2SQL pipelines, semantic search, and
 		 multi-agent LLM systems. The through-line is the same: a precise mathematical statement of
 		 the problem, then an implementation that holds up under load.`,
-		`I came to all of this through competitive programming. I was a gold medalist at the ICPC
-		 Tunisian Regional and now spend part of my time on the other side of the judge — writing
-		 problems, building contest infrastructure, and coaching the next teams.`
+		`I came to all of this through competitive programming — an ICPC Finalist, and a gold medalist
+		 at the ICPC Tunisian Regional. These days I spend part of my time on the other side of the
+		 judge: writing problems, building contest infrastructure, and coaching the teams that get
+		 there.`
 	],
 	stats: [
 		{ value: '6', label: 'years', detail: 'in machine learning, research through production' },
 		{ value: '4', label: 'contests', detail: 'authored & judged as problem setter' },
-		{ value: '2×', label: 'ICPC gold', detail: 'Tunisian Regional — contestant & coach' },
+		{
+			value: '2025',
+			label: 'ICPC finalist',
+			detail: 'World Finals in Baku, plus 2× regional gold'
+		},
 		{ value: '3', label: 'languages', detail: 'Arabic, French, English (875 TOEIC)' }
 	],
 	availability: 'Open to research-engineering roles and collaborations.'

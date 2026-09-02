@@ -68,7 +68,7 @@ export const projects: Project[] = [
 		slug: 'compass',
 		name: 'COMPASS',
 		kicker: 'Latent jump ODEs for synthetic patient trajectories',
-		year: '2025 — present',
+		year: '2025 — 2026',
 		org: 'InovIntell',
 		domain: 'research',
 		featured: true,
@@ -83,12 +83,12 @@ export const projects: Project[] = [
 		approach: [
 			'Specified the model as an augmented jump SDE without a diffusion term, with gated hazard channels per event type and masks for death and off-treatment periods.',
 			'Extended torchdiffeq with a jump mechanism: event detection, step cutting at event times, multistep restart, latent projection so only the latent block jumps, and adjoint support with tests.',
-			'Added survival machinery to the VAE — hazard heads, right-censoring, masked normalisation, an ELBO with a survival component, one-hot encoding and a generation path for mean encoding.',
+			'Made the cumulative hazard part of the integrated state, so the solver produces Λ alongside z and S(t) = exp(−Λ(t)) holds to solver tolerance — then built the likelihood on it: right-censoring, terminal and recurrent channels, masked normalisation, and an ELBO with a survival term.',
 			'Built the three-stage indirect-treatment-comparison pipeline around it, with sharding, parallelism, CPU thread capping, OOM guards and ETA reporting for long fine-tuning runs.',
 			'Reported results as bootstrap Kaplan–Meier percentile bands for synthetic arms, with anchored and unanchored arm mapping.'
 		],
 		outcome:
-			'Applied to real trial comparisons (ELEVATE-TN, ELEVATE-RR, ASCEND, AMPLIFY) as part of a production analysis pipeline.',
+			'Applied to real trial comparisons (ELEVATE-TN, ELEVATE-RR, ASCEND, AMPLIFY) as part of a production analysis pipeline, and accepted as a co-authored poster (MSR91) at ISPOR Europe 2026 in Vienna.',
 		stack: ['PyTorch', 'Lightning', 'torchdiffeq', 'Optuna', 'lifelines', 'NumPy', 'uv'],
 		metrics: [
 			{ value: '3', label: 'pipeline stages, sharded' },
@@ -100,7 +100,7 @@ export const projects: Project[] = [
 		slug: 'cot',
 		name: 'cot',
 		kicker: 'Constrained optimal transport for population adjustment',
-		year: '2026 — present',
+		year: '2026',
 		org: 'InovIntell',
 		domain: 'research',
 		featured: true,

@@ -1,5 +1,7 @@
 export type Role = {
 	company: string;
+	/** Surfaced in the "Previously" block on the home page. */
+	featured?: boolean;
 	title: string;
 	period: string;
 	start: string;
@@ -43,10 +45,11 @@ export const roles: Role[] = [
 	},
 	{
 		company: 'InovIntell',
+		featured: true,
 		title: 'Artificial Intelligence Engineer',
-		period: 'May 2025 — present',
+		period: 'May 2025 — Sep 2026',
 		start: '2025-05',
-		end: 'present',
+		end: '2026-09',
 		location: 'Kraków, Poland · remote',
 		kind: 'research',
 		summary:
@@ -62,6 +65,7 @@ export const roles: Role[] = [
 	},
 	{
 		company: 'predictores.ai',
+		featured: true,
 		title: 'Team Lead — Artificial Intelligence Engineer',
 		period: 'Feb 2025 — Jan 2026',
 		start: '2025-02',
@@ -90,6 +94,7 @@ export const roles: Role[] = [
 	},
 	{
 		company: 'ConvergenceAI',
+		featured: true,
 		title: 'Machine Learning Engineer',
 		period: 'Mar 2024 — Apr 2025',
 		start: '2024-03',
@@ -109,6 +114,7 @@ export const roles: Role[] = [
 	},
 	{
 		company: 'Technische Universität Dresden',
+		featured: true,
 		title: 'Deep Learning Researcher — Master thesis',
 		period: 'Feb 2023 — Jul 2023',
 		start: '2023-02',

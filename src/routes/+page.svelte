@@ -15,6 +15,7 @@
 	let { data }: PageProps = $props();
 
 	const current = roles.filter((r) => r.end === 'present');
+	const previous = roles.filter((r) => r.featured && r.end !== 'present');
 	const preview = featuredProjects.slice(0, 6);
 	const problemsAuthored = 58;
 </script>
@@ -23,7 +24,7 @@
 	<title>{profile.name} — {profile.role}</title>
 	<meta
 		name="description"
-		content="Rami Zouari — machine learning engineer working on continuous-time generative models, jump ODEs, optimal transport and reinforcement learning. ICPC gold medalist and problem setter."
+		content="Rami Zouari — machine learning engineer working on continuous-time generative models, jump ODEs, optimal transport and reinforcement learning. ICPC Finalist and problem setter."
 	/>
 	<meta property="og:title" content="{profile.name} — {profile.role}" />
 	<meta property="og:description" content={profile.tagline} />
@@ -64,8 +65,8 @@
 	<figure class="legend">
 		<Tex html={data.heroEquation} label={profile.heroEquation} display={false} />
 		<figcaption>
-			A jump ODE — smooth flow, punctuated by events. It is the model behind my current work, and
-			behind this drawing.
+			A jump ODE — smooth flow, punctuated by events. It is the model behind much of my recent work,
+			and behind this drawing.
 		</figcaption>
 	</figure>
 </section>
@@ -113,6 +114,29 @@
 			</Reveal>
 		{/each}
 	</div>
+
+	<div class="prev">
+		<p class="eyebrow prev-label">Previously</p>
+		<ul class="prev-list">
+			{#each previous as role, i (role.company)}
+				<Reveal as="li" delay={i * 50}>
+					<div class="prev-card">
+						<div class="prev-top">
+							<span class="prev-company">{role.company}</span>
+							<span class="mono prev-period">{role.period}</span>
+						</div>
+						<p class="prev-role">{role.title}</p>
+						<p class="prev-summary">{role.summary}</p>
+						<div class="prev-stack">
+							{#each role.stack.slice(0, 5) as tool (tool)}
+								<Pill>{tool}</Pill>
+							{/each}
+						</div>
+					</div>
+				</Reveal>
+			{/each}
+		</ul>
+	</div>
 </section>
 
 <hr class="rule shell-wide" />
@@ -156,8 +180,8 @@
 <section class="section shell-wide">
 	<SectionHead
 		eyebrow="02 — Research"
-		title="Four things I keep coming back to"
-		lede="Continuous-time generative models, transport between distributions, decision-making under non-stationarity, and games on graphs. Different fields; the same instinct to write the problem down properly before writing any code."
+		title="Five things I keep coming back to"
+		lede="Survival and jump dynamics in continuous time, transport between distributions, decision-making under non-stationarity, and games on graphs. Different fields; the same instinct to write the problem down properly before writing any code."
 		more={{ href: '/research/', label: 'All threads' }}
 	/>
 
@@ -203,7 +227,7 @@
 					<span class="medal-title"
 						>{award.title.replace(' — Gold', '').replace(' — Silver', '')}</span
 					>
-					<span class="medal-kind">{award.medal === 'gold' ? 'Gold' : 'Silver'}</span>
+					<span class="medal-kind">{award.kind}</span>
 					<span class="medal-detail">{award.detail}</span>
 				</div>
 			{/each}
@@ -426,6 +450,72 @@
 	.rule {
 		max-width: var(--shell-wide);
 		margin-inline: auto;
+	}
+
+	/* ── Previously ──────────────────────────────────────────────────────── */
+	.prev {
+		margin-top: var(--space-2xl);
+	}
+
+	.prev-label {
+		padding-bottom: var(--space-m);
+	}
+
+	.prev-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: grid;
+		gap: var(--space-s);
+	}
+
+	.prev-card {
+		display: grid;
+		gap: 0.35rem;
+		height: 100%;
+		padding: var(--space-m);
+		border: 1px solid var(--line);
+		border-radius: var(--radius-lg);
+		background: var(--surface);
+	}
+
+	.prev-top {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 0.4rem var(--space-s);
+	}
+
+	.prev-company {
+		font-family: var(--font-mono);
+		font-size: var(--step--1);
+		color: var(--accent);
+	}
+
+	.prev-period {
+		font-size: var(--step--2);
+		color: var(--fg-4);
+	}
+
+	.prev-role {
+		font-family: var(--font-display);
+		font-size: var(--step-2);
+		line-height: 1.15;
+	}
+
+	.prev-summary {
+		font-size: var(--step--1);
+		line-height: 1.6;
+		color: var(--fg-3);
+	}
+
+	.prev-stack {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.3rem;
+		margin-top: auto;
+		padding-top: var(--space-2xs);
 	}
 
 	/* ── Now ─────────────────────────────────────────────────────────────── */
@@ -669,6 +759,10 @@
 		background: var(--surface);
 	}
 
+	.medal[data-medal='finalist'] {
+		border-left-color: var(--accent);
+	}
+
 	.medal[data-medal='silver'] {
 		border-left-color: var(--fg-4);
 	}
@@ -688,6 +782,10 @@
 		letter-spacing: 0.1em;
 		text-transform: uppercase;
 		color: var(--gold);
+	}
+
+	.medal[data-medal='finalist'] .medal-kind {
+		color: var(--accent);
 	}
 
 	.medal[data-medal='silver'] .medal-kind {
@@ -774,6 +872,10 @@
 		.now {
 			grid-template-columns: 16rem 1fr;
 			gap: var(--space-2xl);
+		}
+
+		.prev-list {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
 
 		.thread {

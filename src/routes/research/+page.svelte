@@ -4,7 +4,7 @@
 	import Tex from '$lib/components/Tex.svelte';
 	import Pill from '$lib/components/Pill.svelte';
 	import TransportPlot from '$lib/visuals/TransportPlot.svelte';
-	import { threads } from '$lib/data/research';
+	import { threads, publications } from '$lib/data/research';
 	import { profile } from '$lib/data/profile';
 	import type { PageProps } from './$types';
 
@@ -15,7 +15,7 @@
 	<title>Research — {profile.name}</title>
 	<meta
 		name="description"
-		content="Latent jump ODEs, constrained optimal transport, reinforcement learning under non-stationarity, and learning to solve mean-payoff games on graphs."
+		content="Survival latent ODEs, latent jump ODEs, constrained optimal transport, reinforcement learning under non-stationarity, and learning to solve mean-payoff games on graphs."
 	/>
 </svelte:head>
 
@@ -23,7 +23,7 @@
 	<p class="eyebrow">02 — Research</p>
 	<h1>Research</h1>
 	<p class="lede">
-		I work at the point where a modelling assumption becomes a line of code. These are the four
+		I work at the point where a modelling assumption becomes a line of code. These are the five
 		threads that have taken most of my attention — what the problem actually was, the mathematics I
 		settled on, and the part that turned out to be harder than it looked.
 	</p>
@@ -37,6 +37,60 @@
 		{/each}
 	</nav>
 </header>
+
+<section class="pubs shell-wide">
+	<Reveal>
+		<h2 class="pubs-title">Publications</h2>
+		<ul>
+			{#each publications as pub (pub.title)}
+				<li>
+					<div class="pub-meta">
+						<span class="mono pub-status">{pub.status}</span>
+						<span class="mono">{pub.kind}</span>
+						<span class="mono">{pub.code}</span>
+					</div>
+
+					<h3>
+						<a href={pub.href} rel="noreferrer" target="_blank">
+							{pub.title}
+							<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true">
+								<path
+									d="M4 12L12 4M6 4h6v6"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="1.5"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+								/>
+							</svg>
+						</a>
+					</h3>
+
+					<p class="pub-authors">
+						<!-- Separators come from CSS: Svelte trims trailing whitespace in the
+						     template, which would run the surnames together. -->
+						{#each pub.authors as author (author)}<span
+								class="author"
+								class:self={author === pub.self}>{author}</span
+							>{/each}
+					</p>
+
+					<p class="pub-venue mono">
+						{pub.venue} · {pub.location} · {pub.date}
+					</p>
+
+					<p class="pub-note">{pub.note}</p>
+
+					<div class="pub-topics">
+						{#each pub.topics as topic (topic)}
+							<Pill>{topic}</Pill>
+						{/each}
+					</div>
+				</li>
+			{/each}
+		</ul>
+	</Reveal>
+</section>
 
 {#each threads as thread, i (thread.slug)}
 	<article class="thread" id={thread.slug}>
@@ -193,6 +247,111 @@
 	.jump a .mono {
 		font-size: 0.7em;
 		color: var(--fg-4);
+	}
+
+	/* ── Publications ────────────────────────────────────────────────────── */
+	.pubs {
+		padding-bottom: var(--space-xl);
+	}
+
+	.pubs-title {
+		font-family: var(--font-mono);
+		font-size: var(--step--2);
+		font-weight: 500;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--fg-4);
+		padding-bottom: var(--space-s);
+		border-bottom: 1px solid var(--line);
+	}
+
+	.pubs ul {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	.pubs li {
+		display: grid;
+		gap: 0.45rem;
+		padding: var(--space-m) 0 var(--space-m) var(--space-m);
+		border-left: 2px solid var(--accent);
+		border-bottom: 1px solid var(--line);
+	}
+
+	.pub-meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem 0.85rem;
+		font-size: var(--step--2);
+		color: var(--fg-4);
+	}
+
+	.pub-status {
+		color: var(--accent);
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+	}
+
+	.pubs h3 {
+		font-size: var(--step-1);
+		line-height: 1.3;
+		max-width: 62ch;
+	}
+
+	.pubs h3 a {
+		transition: color var(--dur-fast) var(--ease);
+	}
+
+	.pubs h3 a:hover {
+		color: var(--accent);
+	}
+
+	.pubs h3 svg {
+		display: inline-block;
+		vertical-align: baseline;
+		margin-left: 0.15em;
+		color: var(--fg-4);
+	}
+
+	.pubs h3 a:hover svg {
+		color: var(--accent);
+	}
+
+	.pub-authors {
+		font-size: var(--step--1);
+		line-height: 1.6;
+		color: var(--fg-3);
+		max-width: 68ch;
+	}
+
+	.author:not(:last-child)::after {
+		content: ', ';
+		color: var(--fg-4);
+	}
+
+	.author.self {
+		color: var(--fg);
+		font-weight: 600;
+	}
+
+	.pub-venue {
+		font-size: var(--step--2);
+		color: var(--fg-4);
+	}
+
+	.pub-note {
+		font-size: var(--step--1);
+		line-height: 1.6;
+		color: var(--fg-3);
+		max-width: 68ch;
+	}
+
+	.pub-topics {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.3rem;
+		margin-top: 0.2rem;
 	}
 
 	.thread {

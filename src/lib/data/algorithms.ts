@@ -1,23 +1,35 @@
 export type Award = {
 	id: string;
 	year: string;
-	medal: 'gold' | 'silver' | 'other';
+	medal: 'finalist' | 'gold' | 'silver' | 'other';
+	/** Short label for the result, shown alongside the title. */
+	kind: string;
 	title: string;
 	detail: string;
 };
 
 export const awards: Award[] = [
 	{
+		id: 'icpc-finals-2025',
+		year: '2025',
+		medal: 'finalist',
+		kind: 'Finalist',
+		title: 'ICPC Finalist',
+		detail: 'World Finals — Baku.'
+	},
+	{
 		id: 'icpc-2024-coach',
 		year: '2024',
 		medal: 'gold',
+		kind: 'Gold',
 		title: 'ICPC Tunisian Regional — Gold',
-		detail: 'As coach. Second gold at the regional, from the other side of the table.'
+		detail: 'As coach — the run that took the team to the World Finals.'
 	},
 	{
 		id: 'icpc-2022',
 		year: '2022',
 		medal: 'silver',
+		kind: 'Silver',
 		title: 'ICPC Tunisian Regional — Silver',
 		detail: 'As contestant.'
 	},
@@ -25,6 +37,7 @@ export const awards: Award[] = [
 		id: 'icpc-2021',
 		year: '2021',
 		medal: 'gold',
+		kind: 'Gold',
 		title: 'ICPC Tunisian Regional — Gold',
 		detail: 'As contestant.'
 	},
@@ -32,6 +45,7 @@ export const awards: Award[] = [
 		id: 'music-2017',
 		year: '2017',
 		medal: 'other',
+		kind: '',
 		title: 'Arabic Music Diploma',
 		detail: 'A different kind of practice, and the one that came first.'
 	}

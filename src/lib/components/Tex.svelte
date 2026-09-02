@@ -34,9 +34,24 @@
 			if (natural > avail) {
 				node.style.fontSize = `${Math.max(0.55, (avail - 1) / natural).toFixed(3)}em`;
 			}
+
+			// Below the floor the equation still runs past the edge. Fade it, so
+			// that it reads as scrollable rather than as broken.
+			node.classList.toggle('clipped', node.scrollWidth > node.clientWidth + 1);
 		};
 
 		measure();
+
+		/* The first measurement lands before the KaTeX faces have loaded, and
+		   fallback metrics are narrower — so every equation looks like it fits.
+		   The element's own box never changes, so the ResizeObserver will not
+		   catch the swap. Measure again once the real fonts are in. */
+		void document.fonts?.ready.then(() => {
+			if (!node.isConnected) return;
+			lastWidth = -1;
+			measure();
+		});
+
 		const ro = new ResizeObserver(measure);
 		ro.observe(node);
 		return () => ro.disconnect();
@@ -65,6 +80,12 @@
 		overflow-x: auto;
 		overflow-y: hidden;
 		padding-block: 0.15rem;
+	}
+
+	.display.clipped {
+		--fade: linear-gradient(90deg, #000 0%, #000 90%, transparent 100%);
+		-webkit-mask-image: var(--fade);
+		mask-image: var(--fade);
 	}
 
 	.display::-webkit-scrollbar {
