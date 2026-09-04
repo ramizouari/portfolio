@@ -53,14 +53,34 @@
 			<Tex html={data.signature} label={problem.signatureTex} />
 		</div>
 
-		<a class="repo" href={problem.repo} rel="noreferrer" target="_blank">
-			<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="currentColor">
-				<path
-					d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38l-.01-1.49c-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48l-.01 2.2c0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
-				/>
-			</svg>
-			Contest repository
-		</a>
+		<div class="links">
+			{#if problem.repo}
+				<a class="link" href={problem.repo} rel="noreferrer" target="_blank">
+					<svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true" fill="currentColor">
+						<path
+							d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38l-.01-1.49c-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.4 7.4 0 0 1 2-.27c.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48l-.01 2.2c0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
+						/>
+					</svg>
+					Contest repository
+				</a>
+			{/if}
+
+			{#each problem.judge as judge (judge.href)}
+				<a class="link judge" href={judge.href} rel="noreferrer" target="_blank">
+					<svg viewBox="0 0 16 16" width="13" height="13" aria-hidden="true">
+						<path
+							d="M4 12L12 4M6 4h6v6"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.4"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						/>
+					</svg>
+					Solve it — {judge.label}
+				</a>
+			{/each}
+		</div>
 	</header>
 
 	<div class="body shell-wide">
@@ -236,11 +256,17 @@
 		max-width: 46rem;
 	}
 
-	.repo {
+	.links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2xs);
+		margin-top: var(--space-l);
+	}
+
+	.link {
 		display: inline-flex;
 		align-items: center;
 		gap: 0.5rem;
-		margin-top: var(--space-l);
 		padding: 0.5rem 1rem;
 		border: 1px solid var(--line-strong);
 		border-radius: 999px;
@@ -251,9 +277,13 @@
 			border-color var(--dur-fast) var(--ease);
 	}
 
-	.repo:hover {
+	.link:hover {
 		color: var(--accent);
 		border-color: var(--accent-line);
+	}
+
+	.judge {
+		font-variant-numeric: tabular-nums;
 	}
 
 	.body {

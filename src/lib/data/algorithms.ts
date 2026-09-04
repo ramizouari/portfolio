@@ -59,9 +59,29 @@ export type Contest = {
 	total: string;
 	note: string;
 	repo?: string;
+	/** The Codeforces mirror of the set, where one is public. */
+	mirror?: string;
 };
 
 export const contests: Contest[] = [
+	{
+		name: 'WinterCup 8.0',
+		year: '2026',
+		role: 'Problem setter',
+		authored: '4',
+		total: '14',
+		note: 'Four problems for the eighth edition, the most recent one.',
+		mirror: 'https://codeforces.com/gym/106415'
+	},
+	{
+		name: 'WinterCup 7.0',
+		year: '2025',
+		role: 'Problem setter',
+		authored: '2',
+		total: '12',
+		note: 'Two problems for the seventh edition, mirrored as a public gym.',
+		mirror: 'https://codeforces.com/gym/594190'
+	},
 	{
 		name: 'VertexCover Contest',
 		year: '2023',
@@ -73,30 +93,33 @@ export const contests: Contest[] = [
 	},
 	{
 		name: 'WinterCup 6.0',
-		year: '2023',
+		year: '2024',
 		role: 'Problem setter · judge',
-		authored: '7',
-		total: '13',
+		authored: '9',
+		total: '17',
 		note: 'Including the DOMjudge deployment and the Polygon → DOMjudge conversion tooling that ran the contest.',
-		repo: 'https://github.com/YessineJallouli/WinterCup6'
+		repo: 'https://github.com/YessineJallouli/WinterCup6',
+		mirror: 'https://codeforces.com/group/MAbng8L9pC/contest/479486'
 	},
 	{
 		name: 'WinterCup 5.0',
-		year: '2022',
+		year: '2023',
 		role: 'Problem setter',
-		authored: '—',
+		authored: '8',
 		total: '21',
 		note: 'Contributed problems and infrastructure to the fifth edition.',
-		repo: 'https://github.com/ramizouari/WinterCup5'
+		repo: 'https://github.com/ramizouari/WinterCup5',
+		mirror: 'https://codeforces.com/group/MAbng8L9pC/contest/426194'
 	},
 	{
 		name: 'WinterCup 4.0',
 		year: '2022',
 		role: 'Problem setter · co-organiser',
-		authored: '—',
+		authored: '6',
 		total: '14',
 		note: 'Hosted at INSAT in April 2022, and later the seed problem set for Excellentia.',
-		repo: 'https://github.com/ramizouari/WinterCup4'
+		repo: 'https://github.com/ramizouari/WinterCup4',
+		mirror: 'https://codeforces.com/group/MAbng8L9pC/contest/368038'
 	}
 ];
 

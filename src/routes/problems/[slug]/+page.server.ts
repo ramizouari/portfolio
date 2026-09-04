@@ -34,7 +34,8 @@ export const load: PageServerLoad = ({ params }) => {
 			constraints: problem.constraints,
 			complexity: problem.complexity,
 			variants: problem.variants ?? null,
-			repo: problem.repo,
+			repo: problem.repo ?? null,
+			judge: problem.judge ?? [],
 			signatureTex: problem.signature
 		},
 		signature: renderTex(problem.signature),

@@ -40,7 +40,7 @@ struct segment_tree
 	<title>Algorithms — {profile.name}</title>
 	<meta
 		name="description"
-		content="ICPC Finalist and problem setter: 58+ original competitive programming problems across four contests, plus the judging infrastructure and the C++ library behind them."
+		content="ICPC Finalist and problem setter: 100+ original competitive programming problems across six contests, plus the judging infrastructure and the C++ library behind them."
 	/>
 </svelte:head>
 
@@ -101,7 +101,7 @@ struct segment_tree
 					<p class="contest-note">{contest.note}</p>
 
 					<div class="ratio">
-						{#if contest.authored !== '—'}
+						{#if contest.authored !== '—' && contest.total !== '—'}
 							<div
 								class="bar"
 								style:--fill="{(Number(contest.authored) / Number(contest.total)) * 100}%"
@@ -111,16 +111,25 @@ struct segment_tree
 							<span class="mono ratio-label">
 								{contest.authored} of {contest.total} problems authored
 							</span>
+						{:else if contest.authored !== '—'}
+							<span class="mono ratio-label">{contest.authored} problems authored</span>
 						{:else}
 							<span class="mono ratio-label">{contest.total} problems in the set</span>
 						{/if}
 					</div>
 
-					{#if contest.repo}
-						<a class="contest-repo mono" href={contest.repo} rel="noreferrer" target="_blank">
-							repository ↗
-						</a>
-					{/if}
+					<div class="contest-links">
+						{#if contest.repo}
+							<a class="contest-repo mono" href={contest.repo} rel="noreferrer" target="_blank">
+								repository ↗
+							</a>
+						{/if}
+						{#if contest.mirror}
+							<a class="contest-repo mono" href={contest.mirror} rel="noreferrer" target="_blank">
+								codeforces ↗
+							</a>
+						{/if}
+					</div>
 				</div>
 			</Reveal>
 		{/each}
@@ -134,7 +143,7 @@ struct segment_tree
 	<h2 class="section-title">Selected problems</h2>
 
 	<p class="lede problems-lede">
-		Ten I would set again. Each one is here in full — the statement as it was posed, and the
+		Eleven I would set again. Each one is here in full — the statement as it was posed, and the
 		solution reduced to the ideas that actually carry it.
 	</p>
 
@@ -555,9 +564,15 @@ struct segment_tree
 		color: var(--fg-4);
 	}
 
-	.contest-repo {
+	.contest-links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-xs);
 		margin-top: auto;
 		padding-top: var(--space-2xs);
+	}
+
+	.contest-repo {
 		font-size: var(--step--2);
 		color: var(--fg-3);
 		width: fit-content;

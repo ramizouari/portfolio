@@ -17,7 +17,7 @@
 	const current = roles.filter((r) => r.end === 'present');
 	const previous = roles.filter((r) => r.featured && r.end !== 'present');
 	const preview = featuredProjects.slice(0, 6);
-	const problemsAuthored = 58;
+	const problemsAuthored = 100;
 </script>
 
 <svelte:head>
@@ -237,8 +237,8 @@
 			<p class="eyebrow">On the other side</p>
 			<p class="cp-number">{problemsAuthored}<span>+</span></p>
 			<p class="cp-caption">
-				original problems written and judged across {contests.length} contests — including the complete
-				problem set for the VertexCover Contest.
+				original problems written and judged — including the complete problem set for the
+				VertexCover Contest, and every WinterCup edition since 4.0.
 			</p>
 			<ul class="cp-list">
 				{#each contests as contest (contest.name)}

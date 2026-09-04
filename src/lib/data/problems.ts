@@ -36,7 +36,10 @@ export type Problem = {
 	complexity: string;
 	/** Present when the set shipped more than one version. */
 	variants?: { label: string; note: string }[];
-	repo: string;
+	/** The sources, where the contest repository is public. */
+	repo?: string;
+	/** Where the problem can be solved, when the judge is public. */
+	judge?: { label: string; href: string }[];
 };
 
 const WC4 = 'https://github.com/ramizouari/WinterCup4';
@@ -44,13 +47,21 @@ const WC5 = 'https://github.com/ramizouari/WinterCup5';
 const WC6 = 'https://github.com/YessineJallouli/WinterCup6';
 const VCC = 'https://github.com/YessineJallouli/VertexCoverContest-1';
 
+/* The Codeforces mirrors. The WinterCup editions live in the group; the two
+   most recent ones are public gyms. */
+const CF4 = 'https://codeforces.com/group/MAbng8L9pC/contest/368038/problem';
+const CF5 = 'https://codeforces.com/group/MAbng8L9pC/contest/426194/problem';
+const CF6 = 'https://codeforces.com/group/MAbng8L9pC/contest/479486/problem';
+const CF7 = 'https://codeforces.com/gym/594190/problem';
+const CF8 = 'https://codeforces.com/gym/106415/problem';
+
 export const problems: Problem[] = [
 	{
 		slug: 'expected-iterations',
 		index: '01',
 		title: 'Expected Iterations',
 		contest: 'WinterCup 5.0',
-		year: '2022',
+		year: '2023',
 		kicker: 'A loop that halts with probability one — but after how many turns?',
 		signature: String.raw`\mathbb{E}[X_n]=\frac{n-\sum_{d\mid n,\ d<n}\varphi(d)\,\mathbb{E}[X_d]}{n-\varphi(n)}`,
 		tags: ['Probability', 'Number theory', 'Dirichlet sieve'],
@@ -96,7 +107,8 @@ export const problems: Problem[] = [
 			}
 		],
 		complexity: 'O(L log L) precomputation, O(1) per query',
-		repo: WC5
+		repo: WC5,
+		judge: [{ label: 'WinterCup 5.0 · F', href: `${CF5}/F` }]
 	},
 
 	{
@@ -149,7 +161,8 @@ export const problems: Problem[] = [
 			}
 		],
 		complexity: 'O(n·m·min(K, m))',
-		repo: WC4
+		repo: WC4,
+		judge: [{ label: 'WinterCup 4.0 · B', href: `${CF4}/B` }]
 	},
 
 	{
@@ -157,7 +170,7 @@ export const problems: Problem[] = [
 		index: '03',
 		title: 'Splitting Game',
 		contest: 'WinterCup 5.0',
-		year: '2022',
+		year: '2023',
 		kicker: 'Remove one number, then invent as many smaller ones as you like.',
 		signature: String.raw`G_m = 2^{\,m-1}`,
 		tags: ['Combinatorial game theory', 'Sprague–Grundy', 'XOR'],
@@ -202,7 +215,8 @@ export const problems: Problem[] = [
 			}
 		],
 		complexity: 'O(n log n)',
-		repo: WC5
+		repo: WC5,
+		judge: [{ label: 'WinterCup 5.0 · K', href: `${CF5}/K` }]
 	},
 
 	{
@@ -210,7 +224,7 @@ export const problems: Problem[] = [
 		index: '04',
 		title: 'Bijection Count',
 		contest: 'WinterCup 5.0',
-		year: '2022',
+		year: '2023',
 		kicker: 'Count the integer matrices that stay injective after reduction mod m.',
 		signature: String.raw`\lvert\mathrm{GL}_n(\mathbb{Z}/m)\rvert=m^{\binom{n}{2}}\prod_{i=1}^{n}\Psi(i,m)`,
 		tags: ['Abstract algebra', 'Modules over Z/m', 'Multiplicative functions'],
@@ -266,7 +280,8 @@ export const problems: Problem[] = [
 		],
 		complexity:
 			'Normal: O(L log log L + T) with a linear sieve. Hard: O((L + N log²L)·log log L + T log L)',
-		repo: WC5
+		repo: WC5,
+		judge: [{ label: 'WinterCup 5.0 · L', href: `${CF5}/L` }]
 	},
 
 	{
@@ -274,7 +289,7 @@ export const problems: Problem[] = [
 		index: '05',
 		title: 'Divisibility Game',
 		contest: 'WinterCup 6.0',
-		year: '2023',
+		year: '2024',
 		kicker: 'Merge two numbers into their sum. Lose when everything is divisible by k.',
 		signature: String.raw`\mathcal{G}(C)\neq 0 \iff \text{the first player wins}`,
 		tags: ['Combinatorial game theory', 'Grundy values', 'Modular arithmetic'],
@@ -326,19 +341,36 @@ export const problems: Problem[] = [
 		index: '06',
 		title: 'Infinite Money Glitch',
 		contest: 'WinterCup 6.0',
-		year: '2023',
+		year: '2024',
 		kicker: 'Arbitrage with transaction fees — so a rate alone tells you nothing.',
 		signature: String.raw`W_{u\to v}(x)=r_{u,v}\,\bigl(x-f_{u,v}\bigr)`,
 		tags: ['Graphs', 'Bellman–Ford', 'Monotone operators', 'Binary search'],
+		variants: [
+			{
+				label: 'Normal',
+				note: 'At most 1000 exchanges — a supremum over walks of bounded length.'
+			},
+			{
+				label: 'Hard',
+				note: 'As many exchanges as he likes, in 7 s — the supremum is over every walk, so the iteration has to be shown to reach it.'
+			}
+		],
 		statement: [
 			`A market of $n$ currencies and $m$ directed exchanges. Converting an amount $x$ from $u$ to
 			 $v$ yields $r_{u,v}(x - f_{u,v})$, and is only permitted when $x \\geq f_{u,v}$ — there must be
 			 enough to pay the fee.`,
 			`Starting with a borrowed integer amount $y \\leq x$ in currency $0$, find the smallest $y$ from
 			 which some sequence of conversions returns to currency $0$ holding strictly more than $y$.
-			 Print $-1$ if no such $y$ exists.`
+			 Print $-1$ if no such $y$ exists, or if reaching one would take more than $x$.`,
+			`The two versions differ only in how long the trading may go on: the normal one allows at most
+			 $1000$ exchanges, the hard one any number at all.`
 		],
-		constraints: ['1 ≤ n, m ≤ 1000', '0 ≤ x ≤ 10⁹', '0.1 ≤ r ≤ 10, 0 ≤ f ≤ 10, two decimals'],
+		constraints: [
+			'1 ≤ n ≤ 500, 1 ≤ m ≤ 4000',
+			'0 ≤ x ≤ 10⁹',
+			'0.01 ≤ r ≤ 100, 0 ≤ f ≤ 1000, two decimals',
+			'rates along any walk of length ≤ n multiply to at most 10¹⁴'
+		],
 		reduction:
 			'Not a negative-cycle problem. With a fee, whether an edge is worth taking depends on how much money is passing through it — the edge weights are functions, not numbers, and they do not commute with each other.',
 		ideas: [
@@ -352,10 +384,12 @@ export const problems: Problem[] = [
 			},
 			{
 				title: 'Bellman–Ford survives, because every W is non-decreasing',
-				body: `Relax $D[v] \\leftarrow \\max\\bigl(D[v],\\, W_{u,v}(D[u])\\bigr)$ for $n$ rounds. It
-				 converges to $\\Phi$, and the proof is two inductions: monotonicity of $W$ lets the
-				 lower-bound induction push the hypothesis through the last edge of a walk, and the
-				 iterate is trivially bounded by the sup over walks of length $\\le n$.`
+				body: `Relax $D[v] \\leftarrow \\max\\bigl(D[v],\\, W_{u,v}(D[u])\\bigr)$, sweeping every edge each
+				 round. The iterate only ever rises, so it has a pointwise limit, and two inductions squeeze
+				 that limit onto $\\Phi$: monotonicity of $W$ lets the lower-bound induction push the
+				 hypothesis through the last edge of a walk, and after $k$ rounds the iterate is trivially
+				 bounded by the sup over walks of length $\\le k$. The normal version can stop at its cap;
+				 the hard one is exactly the statement that the limit is attained.`
 			},
 			{
 				title: 'The feasibility rule enforces itself',
@@ -368,12 +402,16 @@ export const problems: Problem[] = [
 				title: 'Monotone in the borrowed amount, so binary search',
 				body: `A composition of non-decreasing maps is non-decreasing, so "$y$ suffices" is a
 				 monotone predicate in $y$. Binary search the least integer $y \\le x$ with
-				 $\\mathrm{BF}(y) > y$. The bound the statement places on $\\sum \\log r$ over walks of length
-				 $\\le n$ is what keeps every intermediate value inside a 32-bit float.`
+				 $\\mathrm{BF}(y) > y$. The guarantee that the rates along any walk of length $\\le n$ multiply to
+				 at most $10^{14}$ is what keeps every intermediate value inside double precision.`
 			}
 		],
-		complexity: 'O(n·m·log x)',
-		repo: WC6
+		complexity: 'O(n·m·log x) — one Bellman–Ford sweep set per binary-search step',
+		repo: WC6,
+		judge: [
+			{ label: 'WinterCup 6.0 · N1', href: `${CF6}/N1` },
+			{ label: 'WinterCup 6.0 · N2', href: `${CF6}/N2` }
+		]
 	},
 
 	{
@@ -381,7 +419,7 @@ export const problems: Problem[] = [
 		index: '07',
 		title: 'Unique Disk Identifier',
 		contest: 'WinterCup 6.0',
-		year: '2023',
+		year: '2024',
 		kicker: 'Colour a disk whose rings spin independently — and that can be flipped.',
 		signature: String.raw`N(A,K)=\tfrac{1}{2}\left(\prod_i L(A_i,K)+\prod_i H(A_i,K)\right)`,
 		tags: ['Burnside / Pólya', 'Group theory', 'Combinatorics'],
@@ -426,15 +464,16 @@ export const problems: Problem[] = [
 			}
 		],
 		complexity: 'O(Σ d(Aᵢ)·log K) after a totient sieve',
-		repo: WC6
+		repo: WC6,
+		judge: [{ label: 'WinterCup 6.0 · K', href: `${CF6}/K` }]
 	},
 
 	{
 		slug: 'universe-algorithm',
 		index: '08',
 		title: 'Universe Algorithm',
-		contest: 'VertexCover Contest',
-		year: '2023',
+		contest: 'WinterCup 6.0',
+		year: '2024',
 		kicker: 'How many random vectors before two of them must be comparable?',
 		signature: String.raw`n_{\min}=1+\#\left\{x\in\{0,\dots,k-1\}^m:\ \textstyle\sum_i x_i=\left\lfloor\tfrac{m(k-1)}{2}\right\rfloor\right\}`,
 		tags: ['Order theory', 'Sperner / Dilworth', 'NTT'],
@@ -483,16 +522,19 @@ export const problems: Problem[] = [
 			}
 		],
 		complexity: 'Normal: O(m). Hard: O(mk log mk) by NTT, or O(m) from the closed form',
-		repo: VCC
+		repo: VCC,
+		judge: [
+			{ label: 'WinterCup 6.0 · I', href: `${CF6}/I` },
+			{ label: 'WinterCup 7.0 · D', href: `${CF7}/D` }
+		]
 	},
 
 	{
 		slug: 'rock-paper-scissors',
 		index: '09',
 		title: 'Rock Paper Scissors',
-		contest: 'VertexCover Contest',
-		year: '2023',
-		division: 'Hard division',
+		contest: 'WinterCup 7.0',
+		year: '2025',
 		kicker: 'A matrix game whose payoff matrix contains its own value.',
 		signature: String.raw`P=\operatorname{val}\bigl(A+p\,P\,I\bigr)`,
 		tags: ['Stochastic games', 'Linear programming', 'Duality', "Newton's method"],
@@ -557,7 +599,8 @@ export const problems: Problem[] = [
 			}
 		],
 		complexity: 'O(S) states, each a Newton loop over a 2-phase simplex; S ≤ 7⁶',
-		repo: VCC
+		repo: VCC,
+		judge: [{ label: 'WinterCup 7.0 · J', href: `${CF7}/J` }]
 	},
 
 	{
@@ -614,6 +657,71 @@ export const problems: Problem[] = [
 		],
 		complexity: 'O(n² log n) by fixed-point iteration; O(n log n) with Newton',
 		repo: VCC
+	},
+
+	{
+		slug: 'game-of-divisors',
+		index: '11',
+		title: 'Game of Divisors',
+		contest: 'WinterCup 8.0',
+		year: '2026',
+		kicker: 'One move reaches every integer at once — so the Grundy values run past infinity.',
+		signature: String.raw`\mathcal{G}(x)=\omega\,(r-1)+\Omega(x)-r`,
+		tags: ['Combinatorial game theory', 'Ordinal arithmetic', 'Number theory', 'Constructive'],
+		statement: [
+			`Khalil and Rami alternate on a list $A$ of $n$ positive integers, Khalil first. A move picks
+			 some $A_i$ and replaces it either by a proper divisor of $A_i$, or by *any* positive integer
+			 with strictly fewer distinct prime factors than $A_i$. A player with no move loses.`,
+			`Before play begins Rami may append integers of his own to the list. Output the smallest set
+			 he can add — possibly empty — that makes him, the second player, win under optimal play, and
+			 the numbers themselves. Any minimal set is accepted.`
+		],
+		constraints: [
+			'1 ≤ T ≤ 10⁴',
+			'0 ≤ n ≤ 10⁶ with Σn ≤ 10⁶',
+			'1 ≤ Aᵢ ≤ 10⁶, and the appended values too'
+		],
+		reduction:
+			'Drive the Grundy value of the whole list to zero with as few numbers ≤ 10⁶ as possible. The catch is the second move: it is unbounded, so a position has infinitely many options, and the values are ordinals rather than integers.',
+		ideas: [
+			{
+				title: 'The unbounded move pushes the value past ω',
+				body: `Write $r$ for the number of distinct primes of $x$. Because a player may jump to
+				 *any* integer with fewer distinct primes, the options of an $x$ with $r = 2$ already
+				 contain every prime power, hence every finite Grundy value. The game still terminates —
+				 $r$ never rises and divisors strictly descend — so Sprague–Grundy applies, but the mex is
+				 taken over an infinite set and lands on a transfinite ordinal.`,
+				tex: String.raw`\mathcal{G}(p^k)=k,\qquad \mathcal{G}(pq)=\operatorname{mex}\mathbb{N}=\omega`
+			},
+			{
+				title: 'A closed form, one rank at a time',
+				body: `Induct on $r$. The unbounded move realises exactly the ordinals below
+				 $\\omega\\,(r-1)$, and the divisors that keep all $r$ primes realise every smaller excess
+				 $\\Omega(x) - r$ at that rank — so the mex is the next ordinal in line. Prime powers are the
+				 degenerate case, $\\mathcal{G}(p^k) = k$, and $\\mathcal{G}(1) = 0$.`,
+				tex: String.raw`\mathcal{G}(x)=\omega\,(r-1)+(\Omega(x)-r),\qquad r\ge 2`
+			},
+			{
+				title: 'Nim-addition of ordinals is coordinatewise',
+				body: `Every value here is below $\\omega^2$, so it is $\\omega b + a$ in Cantor normal form,
+				 and Conway's nim-sum adds the coefficient of each power of $\\omega$ by XOR — the two
+				 coordinates never mix. The list is losing for the player to move iff $\\bigoplus a_i$ and
+				 $\\bigoplus b_i$ both vanish: two independent Nim games riding on one array, which is why
+				 the state is a pair and not an integer.`,
+				tex: String.raw`(\omega b+a)\oplus(\omega b'+a')=\omega\,(b\oplus b')+(a\oplus a')`
+			},
+			{
+				title: 'Then it is a packing problem under 10⁶',
+				body: `Rami must append numbers whose nim-sum is the current total $(a,b)$. The cheapest
+				 carrier of a pair is $2^{a+1}$ times the first $b$ odd primes, and past $10^6$ it stops
+				 existing — the ceiling allows only $a \\le 19$ and $b \\le 6$. Split the bits of $a$ across
+				 two carriers when one will not fit, and peel the top bit onto a pure power of two when two
+				 will not: three numbers always suffice, and that case analysis is the problem.`,
+				tex: String.raw`N(a,b)=2^{\,a+1}\!\!\prod_{2\le i\le b+1}\!\! p_i \;\le\; 10^{6}`
+			}
+		],
+		complexity: 'O(L log log L) to sieve, then O(log Aᵢ) per element and O(1) per test case',
+		judge: [{ label: 'WinterCup 8.0 · E', href: `${CF8}/E` }]
 	}
 ];
 

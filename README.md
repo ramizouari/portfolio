@@ -56,6 +56,10 @@ page. `statement`, `reduction` and each idea's `body` are prose: they accept
 inline `$maths$`, `` `code` `` and `*emphasis*`, all resolved at build time by
 `renderProse` in `src/lib/server/tex.ts`.
 
+The optional `judge` array holds the public Codeforces links — one entry per
+version where the set shipped more than one — and renders as _Solve it_ buttons
+beside the repository link on the problem page.
+
 ### Equations
 
 Written as raw LaTeX in `research.ts` and `problems.ts`, and rendered by KaTeX

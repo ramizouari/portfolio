@@ -29,7 +29,7 @@ export const profile = {
 	],
 	stats: [
 		{ value: '6', label: 'years', detail: 'in machine learning, research through production' },
-		{ value: '4', label: 'contests', detail: 'authored & judged as problem setter' },
+		{ value: '100+', label: 'problems set', detail: 'authored & judged across six contests' },
 		{
 			value: '2025',
 			label: 'ICPC finalist',
