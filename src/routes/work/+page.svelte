@@ -32,8 +32,8 @@
 	<p class="eyebrow">01 — Work</p>
 	<h1>Work</h1>
 	<p class="lede">
-		Six years in machine learning across academia, brand intelligence, oncology, and trading.
-		First, a brief look at the roles, and then the projects that I have contributed to.
+		Six years in machine learning across academia, brand intelligence, oncology, and trading. First,
+		a brief look at the roles, and then the projects that I have contributed to.
 	</p>
 </header>
 

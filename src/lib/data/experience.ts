@@ -23,14 +23,14 @@ export const roles: Role[] = [
 		location: 'Remote',
 		kind: 'research',
 		summary:
-			'Reinforcement learning for trading — a natural setting and a hostile one — and the environment, evaluation protocol and framework it takes to do it carefully.',
+			'Reinforcement learning for trading, and the environment, evaluation protocol and framework it takes to do it carefully.',
 		highlights: [
-			'Designed the trading environment as the specification of the problem — execution timing, fee accounting, position sizing, risk limits, episode structure and what the agent observes of its own book — each an explicit decision covered by tests, because every default becomes a leak or a bias.',
-			'Built that environment once and exposed it to both Gymnasium and TorchRL, with a tensorised batched variant stepped on device, so market, portfolio and reward logic cannot drift between stacks.',
-			'Designed the indicator layer around two execution modes behind one interface — streaming for live stepping, precalculated for backtests — with a torch-native batched implementation and CUDA tests, so a feature means the same thing in research and in production.',
-			'Made inputs and actions invariant to what changes — price level, volatility regime, account size — and put risk into how actions are sized and returns are scored rather than into a veto after the fact.',
-			'Set the evaluation protocol as a fixed input: a frozen out-of-sample calendar, temporal walls enforced by assertion, several seeds, and statistics deflated for every configuration tried.',
-			'Took the agent to a live loop that reuses the evaluation loop itself — feed in, account as ledger, planned trade out — with shadow and paper modes, guards and nightly replay, so parity with the backtest is by construction and checked daily.'
+			'Designed the trading environment from the ground up, including execution timing, fees, position sizing, risk limits, episode boundaries and what the agent sees of its own portfolio.',
+			'Exposed the environment implementation to both Gymnasium and TorchRL, including a tensorized version that runs many simulations in parallel on the GPU for training.',
+			'Wrote the technical-indicator layer so the same indicator can be computed one bar at a time in live trading or over a whole history in a backtest, and verified that the two agree bar for bar.',
+			'Made the agent’s inputs and actions invariant to price level, volatility regime and account size, and built risk into how positions are sized.',
+			'Trained the agent on engineered scale-free features across many market conditions in parallel.',
+			'Deployed it as a live loop that runs against exchange with safety guards and a robust execution engine'
 		],
 		stack: ['PyTorch', 'TorchRL', 'TensorDict', 'Gymnasium', 'pytest', 'LightGBM', 'C++23']
 	},
