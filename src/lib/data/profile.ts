@@ -3,7 +3,8 @@ import type { Pathname } from '$app/types';
 export const profile = {
 	name: 'Rami Zouari',
 	role: 'Machine Learning Engineer',
-	subrole: 'Applied research in generative models, stochastic dynamics & optimal transport',
+	subrole:
+		'Applied research in generative models, stochastic dynamics, optimal transport & reinforcement learning',
 	location: 'Sfax, Tunisia',
 	email: 'zouari.rami@yahoo.com',
 	phone: '+216 98 420 806',
@@ -15,7 +16,8 @@ export const profile = {
 	intro: [
 		`I am a Machine Learning Engineer with a Software Engineering background, working where
 		 applied research meets production systems. I am currently building a reinforcement-learning
-		 framework for trading; before that, continuous-time generative modelling in oncology —
+		 trading agent and the framework, evaluation protocol and live loop around it; before that,
+		 continuous-time generative modelling in oncology —
 		 neural ODEs augmented with jump processes, variational autoencoders with survival-aware
 		 objectives, and optimal transport under partial information.`,
 		`Before that I spent six months at TU Dresden on deep reinforcement learning for mean-payoff

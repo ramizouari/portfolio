@@ -4,18 +4,52 @@
 	import Tex from '$lib/components/Tex.svelte';
 	import Pill from '$lib/components/Pill.svelte';
 	import TransportPlot from '$lib/visuals/TransportPlot.svelte';
+	import JumpOdePlot from '$lib/visuals/JumpOdePlot.svelte';
+	import SurvivalPlot from '$lib/visuals/SurvivalPlot.svelte';
+	import NoiseConePlot from '$lib/visuals/NoiseConePlot.svelte';
+	import MeanPayoffPlot from '$lib/visuals/MeanPayoffPlot.svelte';
 	import { threads, publications } from '$lib/data/research';
 	import { profile } from '$lib/data/profile';
+	import type { Component } from 'svelte';
 	import type { PageProps } from './$types';
 
 	let { data }: PageProps = $props();
+
+	/* One drawing per thread, computed at build time from the model it illustrates. */
+	const plots: Record<string, { component: Component; caption: string }> = {
+		'jump-odes': {
+			component: JumpOdePlot,
+			caption:
+				'A latent coordinate integrated between events and displaced at them. The solution is càdlàg — at each event time the open marker is the state the solver arrived with, the filled one the state after the jump — and the counting process below is what drives it.'
+		},
+		'survival-odes': {
+			component: SurvivalPlot,
+			caption:
+				'The hazard is a head on the integrated state, so the cumulative hazard comes out of the same solver call and the survival curve follows. Two ways an observation can end: an event at T contributes −log h(T) + Λ(T) to the loss, censoring at C only Λ(C).'
+		},
+		'optimal-transport': {
+			component: TransportPlot,
+			caption:
+				'A source population transported onto a target whose marginals are known only through published statistics. The map moves the least mass it can while satisfying them.'
+		},
+		'reinforcement-learning': {
+			component: NoiseConePlot,
+			caption:
+				'Over a month of hourly bars, a few basis points of edge accumulate slowly inside a wide cone of noise. Halfway through, the signal inverts without warning. Beneath both lies transaction cost: it takes weeks to distinguish an edge from pure luck, but rebalancing churn erodes it in days.'
+		},
+		'games-on-graphs': {
+			component: MeanPayoffPlot,
+			caption:
+				'A mean-payoff game: circles belong to the maximiser, squares to the minimiser, edges carry weights. Positional strategies suffice; under the optimal pair the play from v₀ settles on a cycle, and the cycle’s mean weight is the value. The minimiser refuses the +3 edge at D because the cycle it opens averages 3/2.'
+		}
+	};
 </script>
 
 <svelte:head>
 	<title>Research — {profile.name}</title>
 	<meta
 		name="description"
-		content="Survival latent ODEs, latent jump ODEs, constrained optimal transport, reinforcement learning under non-stationarity, and learning to solve mean-payoff games on graphs."
+		content="Latent jump ODEs, survival latent ODEs, constrained optimal transport, a dimensionless trading agent, and learning to solve mean-payoff games on graphs."
 	/>
 </svelte:head>
 
@@ -120,13 +154,11 @@
 				</Reveal>
 
 				<Reveal class="equations" delay={120}>
-					{#if thread.slug === 'optimal-transport'}
+					{#if plots[thread.slug]}
+						{@const Plot = plots[thread.slug].component}
 						<figure class="plot">
-							<TransportPlot />
-							<figcaption>
-								A source population transported onto a target whose marginals are known only through
-								published statistics. The map moves the least mass it can while satisfying them.
-							</figcaption>
+							<Plot />
+							<figcaption>{plots[thread.slug].caption}</figcaption>
 						</figure>
 					{/if}
 					{#each thread.equations as eq, j (eq.tex)}

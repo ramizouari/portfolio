@@ -28,40 +28,31 @@ export const projects: Project[] = [
 		featured: true,
 		visibility: 'private',
 		summary:
-			'One environment core behind both Gymnasium and TorchRL, a tensorised batched environment, technical indicators that behave identically in backtest and live, online supervised learners, and the risk-aware agents built on top.',
-		role: 'Architecture, environments, indicator layer, online learning, training framework, diagnostics.',
-		problem: `Every trading experiment needs the same primitives — a market, a portfolio, indicators,
-			a replay buffer, a trainer — and rebuilding them per experiment is how two implementations
-			quietly diverge and a result stops meaning anything. Worse, an agent trained on market data
-			converges on doing nothing, or on a persistent directional bias, and both look like reasonable
-			behaviour until you audit the training loop. So the framework comes first, and the agent is
-			judged against something that can actually be trusted.`,
+			'The framework a trading agent has to stand on: one environment core behind Gymnasium and TorchRL, indicators that behave identically in backtest and live, an agent trained in tensorised simulations across a wide range of market conditions, and a live loop that is the backtest loop with the market in it.',
+		role: 'Architecture, environments, indicator layer, agent training, live loop.',
+		problem: `Reinforcement learning is the natural formalism for trading and a hostile one to train
+			in: the reward is a thin edge in heavy noise, the market drifts, the agent's own position feeds
+			back into its observations, and costs enter the return at second order. Every trading experiment
+			also needs the same primitives — a market, a portfolio, indicators, a trainer — and rebuilding them
+			per experiment is how two implementations quietly diverge and a result stops meaning anything.
+			So the framework comes first, and every modelling default in it is treated as a decision.`,
 		approach: [
-			'Implemented the environment twice against one shared core — a Gymnasium environment and a TorchRL environment — so market, portfolio, reward and window logic live in one place and both stacks stay in step.',
-			'Built the tensorised TorchRL environment: batched lanes stepped together on device, stacked-frame transforms, subwindow generators, and a nested ParallelEnv/SerialEnv layout that groups a long list of env constructors into the process budget the hardware actually has.',
-			'Migrated the Trading GO agent onto TorchRL in full, retiring the legacy namespace rather than maintaining two implementations.',
-			'Designed the technical-indicator layer around two execution modes behind one interface — streaming for live stepping, precalculated-and-replayed for backtests, with groups that mix both and a shared warm-up contract — then added a torch-native batched implementation with per-lane readiness, replay cursors and CUDA tests.',
-			'Added online supervised learners: replay buffers with explicit data policies and stable feature ordering, flattening preprocessors, and signal modules that let auxiliary predictors keep training alongside the policy.',
-			'Put a risk network in front of action selection so risk aversion is a property of the acting agent, not a coefficient the return can learn to pay off, and added safe-action mixins for position inversion and forced closes.',
-			'Traced trade scarcity and long/short imbalance to six concrete defects — exploration that sampled an action then discarded it, replay storing the post-gate action, a reward computed against a different action than the one being trained on, an epsilon schedule that collapsed inside one episode, auxiliary models reset every episode, and ensemble weights updated from the ensemble’s own output.',
-			'Wrote a C++23 header-only synthetic market to test against known dynamics: streaming coroutine paths, Markov-switching jump diffusion, pluggable regime and jump processes, correlated assets and reverse-time generation.'
+			'Implemented the environment against one shared core and exposed it to both Gymnasium and TorchRL, then built the tensorised version — batched lanes stepped together on device, subwindow sampling, explicit execution timing so the agent never fills at a price it has already seen.',
+			'Made the environment the specification: fee and slippage accounting, how a requested size becomes a position, risk limits and their anchoring, episode boundaries and settlement, and what the agent observes of its own book — each explicit and under test.',
+			'Designed the technical-indicator layer around two execution modes behind one interface — streaming for live stepping, precalculated-and-replayed for backtests — with a torch-native batched implementation and CUDA tests.',
+			'Made observations and actions invariant to price level, volatility regime and account size, and placed risk in the sizing and the objective rather than in a post-hoc gate.',
+			'Trained the agent on engineered, scale-free inputs against many environments stepped together on device, each started at an independent point in history, so one batch spans calm and turbulent markets alike — and gated its deployment on strict tests: out-of-sample scoring across seeds, causality and invariance checks, and replay of its recorded decisions to the digit.',
+			'Kept the evaluation protocol as data: a frozen out-of-sample calendar, temporal walls enforced by assertion, several seeds, and statistics deflated for every configuration tried.',
+			'Took it live as the evaluation loop itself run against the exchange — a bar store with freshness and gap gates, the account API as the ledger, guards for drawdown, exposure and outages, shadow and paper modes, nightly replay of recorded inputs — with a parity test against the backtest.',
+			'Wrote a C++23 header-only synthetic market for testing against known dynamics: streaming coroutine paths, Markov-switching jump diffusion, pluggable regime and jump processes, correlated assets and reverse-time generation.'
 		],
 		outcome:
-			'The framework is in place and under test. The profitable agent it exists for is the work in progress.',
-		stack: [
-			'PyTorch',
-			'TorchRL',
-			'TensorDict',
-			'Gymnasium',
-			'LightGBM',
-			'XGBoost',
-			'C++23',
-			'TensorBoard'
-		],
+			'The framework is in place and under test, the protocol is fixed, and the agent built on it runs in shadow mode against the exchange with parity to the backtest checked every night.',
+		stack: ['PyTorch', 'TorchRL', 'TensorDict', 'Gymnasium', 'pytest', 'LightGBM', 'C++23'],
 		metrics: [
 			{ value: '2', label: 'RL stacks, one core' },
 			{ value: '2', label: 'indicator execution modes' },
-			{ value: '6', label: 'root causes isolated' }
+			{ value: '1', label: 'loop for backtest, training and live' }
 		]
 	},
 	{
@@ -241,7 +232,7 @@ export const projects: Project[] = [
 	{
 		slug: 'mean-payoff-games',
 		name: 'Mean-payoff games',
-		kicker: 'Exact solvers, graph neural networks and self-play',
+		kicker: 'An exact solver, a symmetry-respecting GNN, and self-play',
 		year: '2023',
 		org: 'TU Dresden',
 		domain: 'research',
@@ -249,19 +240,27 @@ export const projects: Project[] = [
 		visibility: 'public',
 		repo: 'https://github.com/ramizouari/StochasticGames',
 		summary:
-			'Master thesis: generating, solving and learning mean-payoff games on graphs — a problem in NP ∩ co-NP with no known polynomial algorithm.',
-		role: 'Dataset generation, exact solvers, GNN agent, distributed training.',
+			'Master thesis — Implementation, generation, analysis and predictive modelling of mean-payoff games using self-play: a library, two annotated datasets, an exact solver by reduction to a CSP, a graph network built from the game’s symmetries, and a distributed AlphaZero pipeline.',
+		role: 'Everything: library, dataset generation, exact solver, model design, distributed self-play.',
 		problem: `Mean-payoff games have positional optimal strategies but no known polynomial-time algorithm.
 			Whether a learned policy can approximate the optimal strategy well enough to be useful is an
-			empirical question that first requires ground truth.`,
+			empirical question that first requires ground truth — hundreds of thousands of games with their
+			exact values and strategies — and a model that cannot cheat on the labels of the vertices or
+			the scale of the weights.`,
 		approach: [
-			'Wrote a high-performance C++ graph sampler to generate the game dataset.',
-			'Implemented fully optimised exact solvers in C++ to annotate every instance with its true value and optimal positional strategy.',
-			'Built a graph neural network agent in TensorFlow that predicts the strategy at each vertex.',
-			'Trained it by AlphaZero-style self-play on an HPC cluster, with gRPC and FastAPI synchronising actors, learner and replay buffer under SLURM.'
+			'Wrote an mpg library with Python and C++ environments, then generated two datasets of 160 000 games each — dense (24 GB) and sparse (4 GB) — with random-graph constructions optimal in the big-O sense and sinkless conditioning by rejection.',
+			'Built an exact multithreaded C++ solver by reducing a game to a min–max system, then to an n-ary and a ternary max-atom system solved by arc consistency, with a linear bound on the domain and a tropical early stop; annotated both datasets with optimal strategies, values and winners in about twelve hours each on the ZIH HPC cluster.',
+			'Designed a weighted graph convolutional network around the game’s symmetries — total in the size of the game, node-agnostic, invariant under positive rescaling of the weights, stable under padding — in TensorFlow, with value, strategy and hybrid heads.',
+			'Formalised the game as a stochastic game and trained the model by AlphaZero-style self-play through a model-based MCTS: learner, actor and evaluator services over FastAPI, a Reverb replay buffer over gRPC, and SLURM discovery, run with one learner, six actors and six evaluators.'
 		],
+		outcome:
+			'A complete, working pipeline: generator, solver, datasets, model and distributed self-play. The training run that would make the agent play well is the stated next step; the thesis is the instrument, not the result.',
 		stack: ['C++', 'TensorFlow', 'Keras', 'Reverb', 'NetworkX', 'gRPC', 'FastAPI', 'SLURM'],
-		metrics: [{ value: 'NP ∩ co-NP', label: 'complexity class' }]
+		metrics: [
+			{ value: '320k', label: 'games generated and solved' },
+			{ value: '28 GB', label: 'across two datasets' },
+			{ value: 'NP ∩ co-NP', label: 'complexity class' }
+		]
 	},
 	{
 		slug: 'cplibrary',
@@ -375,15 +374,22 @@ export const projects: Project[] = [
 		visibility: 'public',
 		repo: 'https://github.com/ramizouari/BNN',
 		summary:
-			'A modular binary neural network library on top of TensorFlow and Larq, packaging state-of-the-art binarisation approaches behind one API.',
-		role: 'Author.',
+			'A binary neural network library extending Larq and TensorFlow: the published binarisation schemes behind one modular API, with the derivations behind each, benchmarked on images and on audio.',
+		role: 'Author — formalisation, derivations, library, experiments.',
 		problem:
-			'Binarised networks trade precision for memory and latency, but the published methods are scattered across incompatible implementations.',
+			'A binarised network trades precision for memory and latency — a 1-bit weight is 32× smaller and a dot product becomes XNOR and popcount — but the published methods are scattered across old, abandoned and mutually incompatible implementations, and the derivations that justify their scaling factors are rarely written down.',
 		approach: [
-			'Implemented the main binarisation approaches against a single interface.',
-			'Kept it modular so a network can be assembled from mixed-precision components.'
+			'Formalised BNNs and derived the optimal binarisation of a vector, of a dot product, and of an arbitrary bilinear operation, so dense and convolutional layers share one quantisation argument.',
+			'Implemented BinaryNet, XNOR-Net, XNOR-Net++, ABC-Net, Bi-Real Net and MeliusNet layers — dense and 1D/2D/3D convolutions — as Larq-compatible layers and quantizers, so Larq’s deployment optimisations still apply.',
+			'Added meta-binarisations Larq lacks — shifted (with a trainable offset), stochastic, and both — plus the Bop optimiser and regularisers on the quantisation error of weights, activations and the bilinear operation.',
+			'Benchmarked against a full-precision MLP: on MNIST, BinaryNet is 29× smaller and needs 64× fewer equivalent multiply-accumulates; on Free Spoken Digits, a signal-processing task BNNs are rarely tried on, the binary models reach 92–94 % against the float model’s 96 %.'
 		],
-		stack: ['TensorFlow', 'Larq', 'Python']
+		stack: ['TensorFlow', 'Larq', 'Keras', 'Python'],
+		metrics: [
+			{ value: '29×', label: 'smaller than the float MLP' },
+			{ value: '64×', label: 'fewer equivalent MACs' },
+			{ value: '6', label: 'BNN families, one API' }
+		]
 	},
 	{
 		slug: 'blackscope',

@@ -23,25 +23,16 @@ export const roles: Role[] = [
 		location: 'Remote',
 		kind: 'research',
 		summary:
-			'Building a reinforcement-learning framework for trading — environments, indicators, online learners, agents — and then the profitable agent it exists for.',
+			'Reinforcement learning for trading — a natural setting and a hostile one — and the environment, evaluation protocol and framework it takes to do it carefully.',
 		highlights: [
-			'Implemented the trading environment twice against one shared core: a Gymnasium environment and a TorchRL environment, so the same market, portfolio and reward logic drives both stacks instead of drifting apart.',
-			'Built the tensorised TorchRL environment — batched lanes stepped together on device, with stacked-frame transforms, subwindow sampling and a nested ParallelEnv/SerialEnv layout that respects the process budget.',
-			'Migrated the Trading GO agent onto TorchRL in full, moving the legacy modules into a new namespace rather than maintaining two divergent implementations.',
-			'Designed the technical-indicator layer around two execution modes behind one interface — streaming indicators that advance one observation at a time for live stepping, and precalculated indicators that compute eagerly over a fixed history and replay — plus a torch-native batched implementation with CUDA tests.',
-			'Added online supervised learners with their own replay buffers, preprocessors and signal modules, so auxiliary predictors keep learning alongside the policy instead of being frozen before it.',
-			'Wrote a C++23 header-only synthetic market for testing against known dynamics: streaming coroutine paths, Markov-switching jump diffusion, pluggable regime and jump processes, correlated assets and reverse-time generation.'
+			'Designed the trading environment as the specification of the problem — execution timing, fee accounting, position sizing, risk limits, episode structure and what the agent observes of its own book — each an explicit decision covered by tests, because every default becomes a leak or a bias.',
+			'Built that environment once and exposed it to both Gymnasium and TorchRL, with a tensorised batched variant stepped on device, so market, portfolio and reward logic cannot drift between stacks.',
+			'Designed the indicator layer around two execution modes behind one interface — streaming for live stepping, precalculated for backtests — with a torch-native batched implementation and CUDA tests, so a feature means the same thing in research and in production.',
+			'Made inputs and actions invariant to what changes — price level, volatility regime, account size — and put risk into how actions are sized and returns are scored rather than into a veto after the fact.',
+			'Set the evaluation protocol as a fixed input: a frozen out-of-sample calendar, temporal walls enforced by assertion, several seeds, and statistics deflated for every configuration tried.',
+			'Took the agent to a live loop that reuses the evaluation loop itself — feed in, account as ledger, planned trade out — with shadow and paper modes, guards and nightly replay, so parity with the backtest is by construction and checked daily.'
 		],
-		stack: [
-			'PyTorch',
-			'TorchRL',
-			'TensorDict',
-			'Gymnasium',
-			'LightGBM',
-			'XGBoost',
-			'C++23',
-			'TensorBoard'
-		]
+		stack: ['PyTorch', 'TorchRL', 'TensorDict', 'Gymnasium', 'pytest', 'LightGBM', 'C++23']
 	},
 	{
 		company: 'InovIntell',
@@ -122,11 +113,12 @@ export const roles: Role[] = [
 		location: 'Dresden, Germany',
 		kind: 'research',
 		summary:
-			'Learning to solve mean-payoff games on graphs with a graph neural network trained by AlphaZero-style self-play.',
+			'Learning to solve mean-payoff games on graphs with a graph neural network trained by AlphaZero-style self-play — thesis hosted at the Institute of Algebra.',
 		highlights: [
-			'Generated a dataset of mean-payoff games with a fast C++ graph sampler, and annotated it with fully optimised exact solvers.',
-			'Implemented a graph neural network agent in TensorFlow that predicts the optimal strategy for each game.',
-			'Trained it by self-play on an HPC cluster, with gRPC and FastAPI coordinating the actors, the learner and the replay buffer.'
+			'Generated two datasets of 160 000 mean-payoff games each with random-graph constructions optimal in the big-O sense and sinkless conditioning by rejection, as SLURM jobs on the ZIH HPC cluster.',
+			'Wrote an exact multithreaded C++ solver by reducing a game to a ternary max-atom system solved by arc consistency, with a linear-bound domain and a tropical early stop, and annotated both datasets with optimal strategies, values and winners.',
+			'Designed a weighted graph convolutional network around the game’s symmetries — node-agnostic, invariant under positive rescaling of the weights, stable under padding — in TensorFlow.',
+			'Trained it by self-play through a model-based MCTS: learner, actor and evaluator services over FastAPI and a Reverb replay buffer, discovered under SLURM.'
 		],
 		stack: ['C++', 'TensorFlow', 'Keras', 'Reverb', 'NetworkX', 'gRPC', 'SLURM', 'Boost']
 	},
@@ -152,11 +144,13 @@ export const roles: Role[] = [
 		end: '2022-09',
 		location: 'Tunis, Tunisia',
 		kind: 'research',
-		summary: 'BinaryFlow — a modular binary neural network library.',
+		summary:
+			'Quantised networks for embedded deep learning: BinaryFlow, a binary neural network library extending Larq and TensorFlow.',
 		highlights: [
-			'Implemented BinaryFlow on top of TensorFlow and Larq, packaging state-of-the-art binarisation approaches behind a single API.'
+			'Formalised binary neural networks and derived the optimal binarisation of vectors, dot products and bilinear operations, then implemented BinaryNet, XNOR-Net, XNOR-Net++, ABC-Net, Bi-Real Net and MeliusNet layers behind one Larq-compatible API.',
+			'Added shifted and stochastic meta-binarisations, the Bop optimiser and quantisation-error regularisers, and benchmarked on MNIST and Free Spoken Digits — 29× less memory and 64× fewer equivalent MACs than the float MLP.'
 		],
-		stack: ['TensorFlow', 'Larq', 'Python']
+		stack: ['TensorFlow', 'Larq', 'Keras', 'Python']
 	},
 	{
 		company: 'Acrabotics',
@@ -199,7 +193,8 @@ export const education: Education[] = [
 	{
 		institution: 'Technische Universität Dresden',
 		credential: 'Master thesis — Machine Learning',
-		detail: 'Deep reinforcement learning for mean-payoff games on graphs.',
+		detail:
+			'Implementation, generation, analysis and predictive modelling of mean-payoff games using self-play — hosted at the Institute of Algebra.',
 		period: '2023'
 	},
 	{
