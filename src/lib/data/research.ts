@@ -188,45 +188,40 @@ export const threads: Thread[] = [
 			individual patient-level data for one trial and, for the other, only what was published: a mean,
 			a standard deviation, a proportion above a threshold, a few quantiles. The question is how to move
 			the source population so that it matches those numbers while disturbing its joint structure as
-			little as possible. That is an optimal transport problem with marginal constraints that are
-			themselves partial — and it decomposes into a small taxonomy of solvable variants.`,
+			little as possible. That is an optimal transport problem with marginal constraints.`,
 		equations: [
 			{
 				tex: String.raw`\mathcal{L}(\mu,\nu,c) \;=\; \inf_{\gamma \in \Gamma(\mu,\nu)} \iint_{\mathcal{X}\times\mathcal{Y}} c(x,y)\,\mathrm{d}\gamma(x,y)`,
 				caption:
-					'Kantorovich’s formulation. Every variant below descends from it; they differ in the constraint structure on ν, the cost, and whether entropy is added.'
+					'Kantorovich’s formulation. The goal is to find a transport plan γ that maps a source population μ to a target population ν.'
 			},
 			{
-				tex: String.raw`c(x,y) = \sum_k c_k(x_k,y_k) \;\Longrightarrow\; \mathcal{L} = \sum_k \mathcal{L}_k`,
+				tex: String.raw`\text{Minimise}\quad \mathcal{C}(\nu) \;=\; \min_{\nu \in \mathrm{Distributions}(\mathcal{Y})} \mathcal{L}(\mu,\nu,c) \quad \text{s.t} \quad g(\nu)=0`,
 				caption:
-					'An additively separable cost makes the mixed transport problem decompose per variable — which is what makes a per-variable specification well posed rather than a heuristic.'
+					'Constrained version of Optimal Transport. The goal is to find the "closest" target distribution ν that verifies the constraints, and its associated transport plan γ.'
 			},
 			{
 				tex: String.raw`T(x) \;=\; \sqrt{v^{\nu} \oslash v^{\mu}} \odot \big(x - m^{\mu}\big) + m^{\nu}, \qquad T = F_\nu^{-1} \circ F_\mu`,
 				caption:
-					'Closed forms where they exist: the affine map is optimal when only a mean and a variance are published; the monotone rearrangement when a quantile function can be reconstructed.'
+					'Closed forms where they exist: the affine map is optimal when only a mean and a variance are published, the monotone rearrangement when a quantile function can be reconstructed.'
 			}
 		],
 		points: [
 			{
 				heading: 'A taxonomy, not a bag of tricks',
-				body: `The problem splits along two axes — the decomposition structure (unconditional, conditional
-					with fixed strata, conditional with flexible strata) and the variable type together with which
-					target statistics are actually available. Eight variants cover the space, each with its own
-					derivation and solution method: closed form, linear program, or Sinkhorn.`
+				body: `With a few assumptions, the problem splits along two axes, the decomposition structure (unconditional, conditionally on a fixed group, conditionally on a variable group) and the variable type together with which
+					target statistics are actually available. With that in hand, we attack each variant, case by case.`
 			},
 			{
 				heading: 'Partial information is the normal case',
 				body: `A published table rarely gives a full marginal. It gives a threshold proportion, or a single
 					quantile, or an integer count. Those become constraints on ν rather than a specification of it,
-					and the transport problem is solved subject to them — a convex QP for overlapping bins, a global
-					shift for a single threshold, a two-stage max-entropy construction for integer counts.`
+					and the transport problem is solved subject to them.`
 			},
 			{
 				heading: 'Conditioning that is allowed to move',
-				body: `When a stratifying variable such as the treatment arm is itself shifted by the transport,
-					fixed-strata decomposition is wrong. The flexible-strata variant solves an outer LP over strata
-					pairs whose costs are the inner mixed-transport optima.`
+				body: `In some formulations, a conditioning variable such as the treatment arm is itself shifted by the transport. 
+					This constitute a recursive optimal transport problem, where the outer one can be solved via Linear Programming.`
 			},
 			{
 				heading: 'Constraints are checked, not assumed',
@@ -235,10 +230,10 @@ export const threads: Thread[] = [
 			}
 		],
 		keywords: [
-			'optimal transport',
+			'Optimal Transport',
 			'Kantorovich duality',
 			'Sinkhorn',
-			'linear programming',
+			'Linear Programming',
 			'quantile transport',
 			'indirect treatment comparison'
 		],
@@ -255,91 +250,99 @@ export const threads: Thread[] = [
 	},
 	{
 		slug: 'reinforcement-learning',
-		signature: String.raw`\mathrm{d}W_t = S_t\,\mathrm{d}P_t - \alpha P_t \lvert \mathrm{d}S_t \rvert`,
+		signature: String.raw`a_t=\operatorname{clip}\!\left(s_t\,\sigma^{\star}/\hat\sigma_t,\,-1,\,1\right)`,
 		index: '04',
-		title: 'Reinforcement learning under non-stationarity',
-		kicker: 'Agents that trade, and the derivations that keep them honest',
+		title: 'A dimensionless trading agent',
+		kicker: 'What a policy can learn from hourly prices, and what the fees take back',
 		period: '2026 — present',
 		context: 'RobotBulls',
-		abstract: `A trading agent is an easy thing to build badly. The reward is noisy, the environment is
-			non-stationary, and almost every plausible design decision quietly biases the policy toward doing
-			nothing. I approached it from the other end: build the instrument before the experiment — one
-			environment core, indicators that behave identically in backtest and live, learners that keep
-			learning — then derive the wealth process properly, choose an action space with the invariances
-			you actually want, and treat pathological behaviour as a diagnosable defect rather than a
-			hyper-parameter to tune.`,
+		abstract: `A trading agent is an easy thing to build badly. and the one I inherited had been: a
+			240 000-parameter Q-network trained on 159 bars per fold, fed prices in dollars through a scaler
+			refit every week, trading 55 times a week with no directional skill. The redesign starts from the
+			inputs — every feature invariant to the price, volume and volatility level — and works up: a
+			35 000-parameter recurrent PPO agent that emits conviction rather than exposure, risk that enters
+			as sizing and objective rather than as a veto, pre-training on seven years of history under a
+			frozen evaluation calendar, and a post-mortem that traced the first full run's loss to turnover
+			and fixed it at the source. Then the same loop, run against the exchange.`,
 		equations: [
 			{
-				tex: String.raw`\mathrm{d}W_t \;=\; \mathrm{d}C_t + P_t\,\mathrm{d}S_t + S_t\,\mathrm{d}P_t + \mathrm{d}[S,P]_t, \qquad [S,P]_t = 0 \ \text{a.s.}`,
+				tex: String.raw`\mathrm{mom}_k=\frac{\ln\left(c_t/c_{t-k}\right)}{\hat\sigma_t\sqrt{k}},\qquad x\leftarrow\operatorname{clip}_{\pm 5}\!\left(1.349\,\frac{x-\operatorname{med}}{\operatorname{IQR}}\right)`,
 				caption:
-					'Wealth as a semimartingale. Because the agent acts on discrete steps, its position is a finite-variation jump process, so the quadratic covariation with the price vanishes — and the PnL formula follows rather than being asserted.'
+					'A momentum feature is a t-statistic, not a price difference: divide the log-return by the volatility over its horizon and it means the same thing in a calm market and a turbulent one. The second stage — one robust affine map fitted on data strictly before the first evaluated bar, stored in the checkpoint, never refit — is what lets a chain of checkpoints share an input space.'
 			},
 			{
-				tex: String.raw`\mathrm{d}C_t \;=\; -P_t\,\mathrm{d}S_t \;-\; \alpha\,P_t\,\lvert \mathrm{d}S_t \rvert \quad\Longrightarrow\quad \mathrm{d}W_t = S_t\,\mathrm{d}P_t - \alpha P_t \lvert \mathrm{d}S_t\rvert`,
+				tex: String.raw`\begin{aligned}a_t&=\operatorname{clip}\!\left(s_t\,\sigma^{\star}/\hat\sigma_t,\,-1,\,1\right)\\ r_t&=\Delta\ln W_t-\tfrac{\lambda}{2}\left(\Delta\ln W_t\right)^{2}-\beta\,\big(\mathrm{DD}_t-\mathrm{DD}_{\mathrm{tol}}\big)_{+}-\kappa\,\lvert\Delta a_t\rvert\end{aligned}`,
 				caption:
-					'Fees and linear slippage enter through the total variation of the position, which is what makes over-trading costly in the model rather than only in reality.'
+					'The actor emits a conviction s ∈ [−1, 1]; a deterministic sizer turns it into exposure at constant risk per unit of conviction, so the same output means the same thing in every volatility regime. The reward is the second-order expansion of a CARA utility with a drawdown penalty and — added by the post-mortem — a turnover term priced in fee units. PPO scores the signal; the environment consumes the action.'
 			},
 			{
-				tex: String.raw`R_t \;=\; \ln\frac{W_t}{W_{t-1}} \;+\; \lambda_{\text{trade}} \min\big(\tau_t^2, f_{\text{inc}}^2\big) \;-\; \lambda_{\text{risk}}\,\text{risk}_t \;+\; R^{\text{bankruptcy}}_t`,
+				tex: String.raw`\mathrm{SR}_{\mathrm{gross}}\;\approx\;\mathrm{IC}\sqrt{N}\;\approx\;0.05\sqrt{365}\;\approx\;1,\qquad \frac{2f}{\hat\sigma_{1\mathrm{h}}}\approx 0.27`,
 				caption:
-					'Log-return, a capped incentive to actually take positions, an explicit risk penalty, and an absorbing bankruptcy term.'
+					'The fundamental law bounds what the signal can pay. An information coefficient of 0.05 at a daily horizon is a gross Sharpe of order one — if and only if the policy trades at that cadence. A round trip at 10 bp costs 0.27 hourly standard deviations, so rebalancing every hour spends roughly 40 % a year chasing 5.6 % of gross edge. That arithmetic is what v1 lost to.'
 			}
 		],
 		points: [
 			{
-				heading: 'One environment core, two stacks',
-				body: `The trading environment is implemented against a shared core and exposed twice — as a
-					Gymnasium environment and as a TorchRL environment — so market, portfolio, reward and window
-					logic live in one place. The TorchRL side is tensorised: batched lanes stepped together on
-					device, with stacked-frame transforms and a nested parallel layout that fits the process
-					budget the hardware actually has.`
+				heading: 'Units are the leak',
+				body: `Raw closes, moving averages and MACD in price units, a StandardScaler refit on each fold's
+					own slice: fold 36's scaler maps 2 400 to zero, fold 76's maps 4 000, and a checkpoint chained
+					across them inherits weights trained in an input space that no longer exists. The 42
+					replacement features come from four sanctioned families — log ratios, relative deviations,
+					volatility scaling, bounded ranks — and a test rescales price and volume together and requires
+					every feature unchanged to 1e-6.`
 			},
 			{
-				heading: 'Indicators that do not lie between backtest and live',
-				body: `The same indicator has to be computable one observation at a time when the agent is
-					stepping, and eagerly over a fixed history when it is being backtested. Both modes sit behind
-					one interface with a shared warm-up contract, so a group can mix them; a torch-native batched
-					implementation carries per-lane readiness and replay cursors, and is tested on CUDA.`
+				heading: 'Capacity, history, and a calendar that is data',
+				body: `1 514 parameters per training bar is not fixed by a better algorithm. The model shrinks to
+					a GRU-64 trunk with actor, critic, auxiliary and quantile heads, and the data grows: 49 332
+					bars of history before the first evaluated bar, a second asset as a cross-asset regulariser
+					with the other asset's columns stripped by assertion, then KL-anchored fine-tuning fold by
+					fold. The 65 test slices are shipped as a CSV, so no hyper-parameter can move the evaluation
+					set.`
 			},
 			{
-				heading: 'Scale-invariant, symmetric actions',
-				body: `Actions are a signed fraction of gross market value rather than a share count. The agent
-					learns capital allocation, behaves consistently across account sizes, treats long and short
-					symmetrically, and gets "do nothing" for free at zero.`
+				heading: 'Conviction, not exposure',
+				body: `The observation carries the portfolio, so a replayed transition encodes a state the current
+					policy would never reach — off-policy replay is off-support here, and decorrelation moves to
+					window sampling across 64 lanes instead. PPO is made recurrent by minibatching over lanes
+					with time intact, and the loss is pointed at the sampled signal while the environment consumes
+					the sized action. Auxiliary heads regress the next-day return and volatility in σ units — a
+					supervision two orders of magnitude denser than the reward.`
 			},
 			{
-				heading: 'Diagnosing a policy that refuses to trade',
-				body: `Sparse trading and a persistent short bias turned out not to be a market fact but six
-					separate defects: exploration that sampled an action and then discarded it, replay that stored
-					the post-gate action instead of the model’s decision, a reward computed against a different
-					action than the one being trained on, an epsilon schedule that collapsed inside one episode,
-					auxiliary models reset every episode, and ensemble weights updated from the ensemble’s own output.`
+				heading: 'It lost on turnover, not direction',
+				body: `v1's mean fold return was −0.70 %; its fees were 1.13 %. Gross of costs it was positive, its
+					allocation correlated 0.003 with the next return, and its fine-tuning was inert — fold returns
+					with and without it correlated 0.985, because early stopping on one noisy validation episode
+					selected almost no training. Three levers with a mechanism behind them — a turnover penalty,
+					an EMA of the conviction signal, a drawdown gate inside the sizer — cut trades from 55 to 14 a
+					week and moved the tiled Sharpe from −1.0 to about 2 across seeds. Deflated for the ~25 arms
+					tried, no single Sharpe is significant; what survives is that every smoothed configuration is
+					positive on every seed, and 1.16 years of hourly data cannot say more than that.`
 			},
 			{
-				heading: 'Risk as a gate, and learners that keep learning',
-				body: `A risk network gates action selection ahead of the policy, so risk aversion is a property
-					of the acting agent rather than a coefficient the return can learn to pay off. Alongside it,
-					online supervised learners carry their own buffers and preprocessors, so the auxiliary
-					predictors adapt with the policy instead of being frozen before it.`
+				heading: 'The walk-forward loop, with the market in it',
+				body: `Live inference is not a port of the agent into a bot. It is the library's own evaluation
+					loop with three substitutions: bars arrive from the feed, the account API is the ledger — read
+					every hour, never evolved — and the trade the environment plans goes to the venue instead of
+					filling at the next open. Parity with the backtest is by construction and tested to the
+					digit: a maximum action difference of 7e-7 over a scored slice. Shadow first, with a nightly
+					replay as the oracle; then paper fills; then size.`
 			}
 		],
 		keywords: [
-			'reinforcement learning',
+			'recurrent PPO',
 			'TorchRL',
-			'semimartingales',
-			'DQN',
-			'ensembles',
-			'regime detection',
-			'online learning'
+			'volatility targeting',
+			'dimensionless features',
+			'walk-forward',
+			'deflated Sharpe',
+			'live trading'
 		],
 		artifacts: [
 			{
 				label: 'rl_notebooks',
-				note: 'Risk-aware ensemble agents, online preprocessors, replay buffers, trainers, and a C++23 header-only synthetic market generator.'
-			},
-			{
-				label: 'Crypto-RL',
-				note: 'The mathematical framework, PnL derivation and architecture review that the environment is built from.'
+				note: 'The rl_trading library: the environment family, dimensionless features and the frozen normaliser, recurrent PPO with auxiliary heads, pre-training and walk-forward drivers, the live loop — and the design, post-mortem and feasibility documents behind each.'
 			}
 		]
 	},
@@ -348,38 +351,81 @@ export const threads: Thread[] = [
 		signature: String.raw`\nu(v) = \sup_{\sigma}\ \inf_{\tau}\ \bar{w}(\sigma,\tau)`,
 		index: '05',
 		title: 'Learning to solve games on graphs',
-		kicker: 'Mean-payoff games, exact solvers, and self-play',
+		kicker:
+			'Mean-payoff games: an exact solver, a network built from the symmetries, and self-play',
 		period: '2023',
-		context: 'TU Dresden · Master thesis',
+		context: 'TU Dresden · Institute of Algebra · Master thesis',
 		abstract: `Mean-payoff games sit in NP ∩ co-NP with no known polynomial algorithm — a rare and
 			interesting place. The thesis asked whether a graph neural network trained by self-play can learn
-			the optimal strategy, using exact solvers as ground truth. That required building all three pieces:
-			the sampler, the solver, and the learner.`,
+			the optimal strategy, using exact solutions as ground truth. That meant building the whole
+			chain: a library for the games, a generator with the right distributions, a solver fast enough to
+			annotate hundreds of thousands of instances, a model that respects what the game is invariant to,
+			and a distributed AlphaZero-style pipeline on an HPC cluster to train it.`,
 		equations: [
 			{
 				tex: String.raw`\nu(v) \;=\; \sup_{\sigma}\ \inf_{\tau}\ \liminf_{n\to\infty} \frac{1}{n}\sum_{i=0}^{n-1} w\big(e_i\big)`,
 				caption:
 					'The value of a vertex: the long-run average weight the maximiser can guarantee against any strategy of the minimiser. Positional strategies suffice, which is what makes the target learnable.'
+			},
+			{
+				tex: String.raw`x_u \;\le\; \max\big(x_v,\ x_{v'}\big) + c \qquad\Longleftarrow\qquad x_u = \max_{(u,v)\in E}\big(x_v + w(u,v)\big)`,
+				caption:
+					'The exact solver is a constraint-satisfaction reduction: a game becomes a min–max system, then an n-ary max-atom system, then a ternary one, which arc consistency solves over a finite domain. Two heuristics make it fast on random games — a linear bound on the diameter of finite assignments, and an early stop that follows from the system being closed under translation.'
+			},
+			{
+				tex: String.raw`\mathcal{M}(\Phi G) = \Phi\,\mathcal{M}(G), \qquad \mathcal{M}(E,\,sW) = \mathcal{M}(E,\,W)\ \ \text{for } s>0`,
+				caption:
+					'What the model must not be able to see: the labels of the vertices, and the scale of the weights. Node-agnosticism is permutation equivariance; positive-scaling invariance is a normalisation in front of the network. With totality and stability under padding, these fix the architecture more than any hyper-parameter does.'
 			}
 		],
 		points: [
 			{
 				heading: 'Generate, then annotate',
-				body: `A fast C++ graph sampler produces the game instances; fully optimised exact solvers label
-					them with the true values and optimal positional strategies.`
+				body: `Two datasets of 160 000 games each — one dense, 24 GB; one sparse, 4 GB — drawn from
+					graph distributions chosen for fairness and symmetry, built by random-graph constructions that
+					are optimal in the big-O sense, and conditioned to be sinkless by rejection. Generation and
+					annotation ran as SLURM jobs on the ZIH cluster.`
+			},
+			{
+				heading: 'An exact solver by reduction',
+				body: `A multithreaded C++ solver turns each game into a ternary max-atom system and runs arc
+					consistency on it. The search domain is cut down by the observation that, on random games,
+					finite assignments have diameter of the order of the largest weight; and since translations
+					are polymorphisms of a tropical system, an iterate that drops below the domain's ceiling can
+					only converge to −∞ — so it stops. Both datasets were labelled with the optimal strategy
+					pair, the value and the winner at every start, in about twelve hours each.`
+			},
+			{
+				heading: 'A network built from the symmetries',
+				body: `A weighted graph convolutional operator — plain GCN discards exactly the information a
+					mean-payoff game turns on — written in TensorFlow because the only available implementation
+					was PyTorch. The model is total in the size of the game, equivariant under relabelling,
+					invariant under a positive rescaling of the weights and stable under padding, and it carries
+					value, strategy and hybrid heads.`
 			},
 			{
 				heading: 'AlphaZero on a graph',
-				body: `A graph neural network policy trained by self-play, distributed across an HPC cluster with
-					gRPC and FastAPI connecting actors, learner and replay buffer under SLURM.`
+				body: `The game is formalised as a stochastic game, and a model-based Monte Carlo tree search
+					plays it. Learner, actor and evaluator services talk over FastAPI, with a Reverb replay
+					buffer over gRPC, and discover each other under SLURM; the experimental run used one learner,
+					six actors and six evaluators. The pipeline is a working proof of concept — the full training
+					run is the first thing the thesis leaves for later.`
 			}
 		],
-		keywords: ['graph neural networks', 'AlphaZero', 'self-play', 'game theory', 'HPC'],
+		keywords: [
+			'graph neural networks',
+			'AlphaZero',
+			'self-play',
+			'max-atom systems',
+			'constraint satisfaction',
+			'permutation equivariance',
+			'HPC'
+		],
 		artifacts: [
 			{
 				label: 'StochasticGames',
 				href: 'https://github.com/ramizouari/StochasticGames',
-				note: 'Agents that play stochastic games on graphs with reinforcement learning.'
+				note: 'Agents that play stochastic games on graphs with reinforcement learning — the self-play pipeline, the model, and the mpg library underneath.'
 			}
 		]
 	}
