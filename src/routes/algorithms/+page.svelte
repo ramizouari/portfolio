@@ -48,9 +48,9 @@ struct segment_tree
 	<p class="eyebrow">03 — Algorithms</p>
 	<h1>Algorithms</h1>
 	<p class="lede">
-		Competitive programming is where I learned to state a problem exactly, bound it, and only then
-		earn a solution. I competed for four years and then moved to the other side of the judge — now I
-		write the problems, build the infrastructure that runs them, and coach the teams.
+		Competitive programming taught me to define a problem, find its edge cases, and solve it
+		efficiently. After four years competing, I shifted behind the scenes: writing problems,
+		maintaining the judging platform, and coaching teams.
 	</p>
 </header>
 

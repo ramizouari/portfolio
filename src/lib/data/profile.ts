@@ -14,20 +14,17 @@ export const profile = {
 	tagline:
 		'I build models of things that move — patient trajectories, market regimes, probability distributions — and the software that makes them run.',
 	intro: [
-		`I am a Machine Learning Engineer with a Software Engineering background, working where
-		 applied research meets production systems. I am currently building a reinforcement-learning
-		 trading agent and the framework, evaluation protocol and live loop around it; before that,
-		 continuous-time generative modelling in oncology —
-		 neural ODEs augmented with jump processes, variational autoencoders with survival-aware
-		 objectives, and optimal transport under partial information.`,
-		`Before that I spent six months at TU Dresden on deep reinforcement learning for mean-payoff
-		 games on graphs, and several years building Text2SQL pipelines, semantic search, and
-		 multi-agent LLM systems. The through-line is the same: a precise mathematical statement of
-		 the problem, then an implementation that holds up under load.`,
-		`I came to all of this through competitive programming — an ICPC Finalist, and a gold medalist
-		 at the ICPC Tunisian Regional. These days I spend part of my time on the other side of the
-		 judge: writing problems, building contest infrastructure, and coaching the teams that get
-		 there.`
+		`I am a Machine Learning Engineer with a software engineering foundation, focusing on taking applied mathematical
+		 research into production. Currently, I’m developing reinforcement learning trading agents
+		 along with the surrounding evaluation harness and live execution loops.
+		 Previously, I worked on continuous-time generative modeling in oncology, specifically 
+		 neural jump ODEs, survival-aware VAEs, and optimal transport with partial observations.`,
+		`Earlier work includes research on deep RL for mean-payoff games on graphs at TU Dresden, as well
+		 as production systems for Text2SQL, semantic search, and multi-agent LLM pipelines.
+		 My focus across all of these has been translating exact mathematical formulations into clean,
+		 reliable code.`,
+		`My background is in competitive programming (ICPC World Finalist, Tunisian Regional gold medalist).
+		 I still stay active in the community by writing problems, building contest platforms, and coaching university teams.`
 	],
 	stats: [
 		{ value: '6', label: 'years', detail: 'in machine learning, research through production' },

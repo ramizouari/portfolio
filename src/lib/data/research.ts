@@ -18,218 +18,9 @@ export type Thread = {
 
 export const threads: Thread[] = [
 	{
-		slug: 'jump-odes',
-		index: '01',
-		title: 'Latent jump ODEs',
-		kicker: 'Continuous-time generative models that are allowed to break',
-		period: '2025 — 2026',
-		context: 'InovIntell · COMPASS',
-		signature: String.raw`\mathrm{d}y = f\,\mathrm{d}t + h\,\mathrm{d}N`,
-		abstract: `A patient trajectory is not smooth. Treatment lines start and stop, adverse events fire,
-			the patient dies. A neural ODE integrates a smooth vector field and cannot express any of that.
-			The fix is to integrate a state that follows an ODE between isolated instants and is displaced
-			discontinuously at those instants. I designed the model and extended a differentiable solver to
-			integrate it, detect and even predict its events, and backpropagate through them.`,
-		equations: [
-			{
-				tex: String.raw`\mathrm{d}y(t) \;=\; f\big(t, y(t)\big)\,\mathrm{d}t \;+\; \sum_{k=1}^{K} h_k\big(t, y(t^-)\big)\,\mathrm{d}N_k(t)`,
-				caption:
-					'The state follows a learned vector field between events, and is displaced by a learned jump map when stream k fires. Solutions are taken càdlàg, so the value reported at an event time is the state after the jump.'
-			},
-			{
-				tex: String.raw`\mathrm{d}\Lambda_{\mathcal{L}} \;=\; [\,m_\dagger = 0\,]\cdot[\,m_\ominus = 1\,]\cdot g_{\mathcal{L}}\big(\chi(t), t\big)\,\mathrm{d}t`,
-				caption:
-					'An event channel made structurally consistent via indicator masks: therapy initiation requires the patient to be alive and off treatment.'
-			}
-		],
-		points: [
-			{
-				heading: 'The augmented state carries its own bookkeeping',
-				body: `Alongside the latent representations, the model is conditioned on static covariates and dynamic state-space variables.
-					Structural constraints are embedded natively into the representation space rather than handled through post-hoc rejection or filtering.`
-			},
-			{
-				heading: 'Order-preserving integration across events',
-				body: `Discontinuities that occur within an integration interval degrade solver accuracy unless the step size is adapted to align with the transition boundary.
-					For history-dependent methods, these transitions further invalidate prior trajectory data, necessitating a solver reset.`
-			},
-			{
-				heading: 'Adjoints through a non-invertible jump map',
-				body: `Adjoint-based gradient calculation with constant memory relies on running the sensitivity equations backward along the trajectory.
-					However, non-invertible state transitions disrupt this continuous formulation, requiring explicit handling of event coordinates and sensitivity updates across the discontinuities.`
-			},
-			{
-				heading: 'Two mechanisms: replay at training, generate at sampling',
-				body: `Training conditions on the events that were actually observed and replays them at their
-					recorded times. Sampling has no such record, so the same model runs against a stochastic
-					mechanism that draws its own event times from the hazards it is integrating`
-			}
-		],
-		keywords: [
-			'neural ODE',
-			'jump processes',
-			'càdlàg',
-			'adjoint sensitivity',
-			'event detection',
-			'generative modelling'
-		],
-		artifacts: [
-			{
-				label: 'torchdiffeq — jump ODE fork',
-				href: 'https://github.com/ramizouari/torchdiffeq',
-				note: 'Jump mechanism, event detection, multistep restart and adjoint support added on top of the reference differentiable ODE solver.'
-			},
-			{
-				label: 'multinode',
-				note: 'The jump VAE: fixed and stochastic jump mechanisms, the latent projection that keeps the hazards out of the jump, and the recurrent / terminal channel split.'
-			}
-		]
-	},
-	{
-		slug: 'survival-odes',
-		index: '02',
-		title: 'Survival latent ODEs',
-		kicker: 'Survival curves from the generative model, not fitted after it',
-		period: '2025 — 2026',
-		context: 'InovIntell · COMPASS',
-		signature: String.raw`S(t) = e^{-\Lambda(t)}`,
-		abstract: `Continuous dynamical models naturally generate state paths, but time-to-event supervision requires
-			aligning these trajectories with target observation densities. Embedding the running integrals required
-			for event modeling directly into the state evolution allows the system to compute downstream risk curves
-			and likelihood functions natively and with matched numerical fidelity.`,
-		equations: [
-			{
-				tex: String.raw`\frac{\mathrm{d}}{\mathrm{d}t}\begin{pmatrix} z \\ \Lambda \end{pmatrix} = \begin{pmatrix} f_\theta(z) \\ h_\theta(z) \end{pmatrix}`,
-				caption:
-					'The integrated system couples the primary latent dynamics with an auxiliary accumulating state. By adequate parametrization, the system guarantees valid decay in the downstream event probabilities directly from the integration dynamics, ensuring theoretical consistency by construction.'
-			},
-			{
-				tex: String.raw`\ell \;=\; \begin{cases} -\log h(T) + \Lambda(T), & \text{event at } T \\[2pt] \Lambda(C), & \text{censored at } C \end{cases}`,
-				caption:
-					'An observed event contributes its log-intensity plus the hazard accumulated up to it; a censored observation contributes only what accumulated before follow-up ended. Treating the two the same is the standard way to bias a survival model, and the loss refuses to.'
-			},
-			{
-				tex: String.raw`\log p_\theta(x \mid z) \;=\; \sum_{(t,d)\,\in\,\mathcal{O}} \log \mathcal{N}\!\big(x_{t,d};\ \hat{x}_{t,d},\ \sigma_d^{2}\big)`,
-				caption:
-					'Clinical data is missing in patterns that mean something, so the reconstruction likelihood is a sum over 𝒪, the set of measurements that were actually made: an absent one contributes nothing rather than a zero.'
-			}
-		],
-		points: [
-			{
-				heading: 'The hazard belongs in the state',
-				body: `Augmenting the ODE with Λ means one solver call produces the trajectory and the
-					cumulative hazard together, consistently, at whatever tolerance the solver was given. A
-					hazard summed separately after the fact is a different quantity from the one the dynamics
-					imply, and the discrepancy shows up exactly where survival curves are read.`
-			},
-			{
-				heading: 'Right-censoring is the normal case',
-				body: `Because most patients remain event-free throughout their observation window, integration intervals are determined dynamically for each individual based on their terminal event or monitoring cut-off. Coincident event and censoring indicators are resolved conservatively to preserve valid clinical observation semantics..`
-			},
-			{
-				heading: 'Terminal and recurrent channels',
-				body: `Patient trajectories frequently involve both repeatable clinical complications and definitive terminal endpoints. The framework accommodates these dynamics concurrently, maintaining dedicated event processes to model recurrent adverse occurrences separately from terminal clinical boundaries.`
-			},
-			{
-				heading: 'Masking, all the way down',
-				body: `In clinical time-series, the timing and absence of tests carry distinct diagnostic meaning. The framework accounts for these sampling patterns across all normalization steps and training objectives, preventing unrecorded clinical observations from distorting patient state representations or biasing outcome likelihoods.`
-			}
-		],
-		keywords: [
-			'survival analysis',
-			'cumulative hazard',
-			'right-censoring',
-			'neural ODE',
-			'variational inference',
-			'masked losses'
-		],
-		artifacts: [
-			{
-				label: 'multinode',
-				note: 'The hazard-augmented node, the censored and masked survival log-likelihood, the survival-augmented ELBO, and the masked reduction machinery underneath them.'
-			},
-			{
-				label: 'synthetic_multinode',
-				note: 'Training, Cox metrics, and the experiments that score the model against Kaplan–Meier curves rather than only against marginals.'
-			}
-		]
-	},
-	{
-		slug: 'optimal-transport',
-		signature: String.raw`\inf_{\gamma \in \Gamma(\mu,\nu)} \int c\,\mathrm{d}\gamma`,
-		index: '03',
-		title: 'Constrained optimal transport',
-		kicker: 'Moving a population onto statistics you can read, but data you cannot',
-		period: '2025 — 2026',
-		context: 'InovIntell · COMPASS',
-		abstract: `Comparing two clinical trials indirectly means making their populations comparable. You have
-			individual patient-level data for one trial and, for the other, only what was published: a mean,
-			a standard deviation, a proportion above a threshold, a few quantiles. The question is how to move
-			the source population so that it matches those numbers while disturbing its joint structure as
-			little as possible. That is an optimal transport problem with marginal constraints.`,
-		equations: [
-			{
-				tex: String.raw`\mathcal{L}(\mu,\nu,c) \;=\; \inf_{\gamma \in \Gamma(\mu,\nu)} \iint_{\mathcal{X}\times\mathcal{Y}} c(x,y)\,\mathrm{d}\gamma(x,y)`,
-				caption:
-					'Kantorovich’s formulation. The goal is to find a transport plan γ that maps a source population μ to a target population ν.'
-			},
-			{
-				tex: String.raw`\text{Minimise}\quad \mathcal{C}(\nu) \;=\; \min_{\nu \in \mathrm{Distributions}(\mathcal{Y})} \mathcal{L}(\mu,\nu,c) \quad \text{s.t} \quad g(\nu)=0`,
-				caption:
-					'Constrained version of Optimal Transport. The goal is to find the "closest" target distribution ν that verifies the constraints, and its associated transport plan γ.'
-			},
-			{
-				tex: String.raw`T(x) \;=\; \sqrt{v^{\nu} \oslash v^{\mu}} \odot \big(x - m^{\mu}\big) + m^{\nu}, \qquad T = F_\nu^{-1} \circ F_\mu`,
-				caption:
-					'Closed forms where they exist: the affine map is optimal when only a mean and a variance are published, the monotone rearrangement when a quantile function can be reconstructed.'
-			}
-		],
-		points: [
-			{
-				heading: 'A taxonomy, not a bag of tricks',
-				body: `With a few assumptions, the problem splits along two axes, the decomposition structure (unconditional, conditionally on a fixed group, conditionally on a variable group) and the variable type together with which
-					target statistics are actually available. With that in hand, we attack each variant, case by case.`
-			},
-			{
-				heading: 'Partial information is the normal case',
-				body: `A published table rarely gives a full marginal. It gives a threshold proportion, or a single
-					quantile, or an integer count. Those become constraints on ν rather than a specification of it,
-					and the transport problem is solved subject to them.`
-			},
-			{
-				heading: 'Conditioning that is allowed to move',
-				body: `In some formulations, a conditioning variable such as the treatment arm is itself shifted by the transport. 
-					This constitute a recursive optimal transport problem, where the outer one can be solved via Linear Programming.`
-			},
-			{
-				heading: 'Constraints are checked, not assumed',
-				body: `Every transport reports whether the constraints it was given were actually met, and
-					over-determined specifications are prioritised explicitly rather than silently.`
-			}
-		],
-		keywords: [
-			'Optimal Transport',
-			'Kantorovich duality',
-			'Sinkhorn',
-			'Linear Programming',
-			'quantile transport',
-			'indirect treatment comparison'
-		],
-		artifacts: [
-			{
-				label: 'cot — constrained optimal transport',
-				note: 'Categorical, expectation, variance, quantile, threshold and bin-constrained methods; mixed and stratified transports; a neural transport module; and a documented derivation for each.'
-			},
-			{
-				label: 'multinode_compass',
-				note: 'The ITC pipeline that consumes it: three sharded stages, bootstrap Kaplan–Meier bands, and anchored / unanchored comparisons.'
-			}
-		]
-	},
-	{
 		slug: 'reinforcement-learning',
 		signature: String.raw`\bigl|\mathbb{E}[r_{t+1}\mid o_t]\bigr|\ \ll\ \sigma_t`,
-		index: '04',
+		index: '01',
 		title: 'Reinforcement learning for trading',
 		kicker: 'A natural setting for a trading agent — and a hostile one',
 		period: '2026 — present',
@@ -322,6 +113,215 @@ preventing backtest leakage.`
 			{
 				label: 'rl_notebooks',
 				note: 'The rl_trading library: environments, indicators, agents, the training and evaluation protocol, and the live loop — with the design and review documents behind each.'
+			}
+		]
+	},
+	{
+		slug: 'jump-odes',
+		index: '02',
+		title: 'Latent jump ODEs',
+		kicker: 'Continuous-time generative models that are allowed to break',
+		period: '2025 — 2026',
+		context: 'InovIntell · COMPASS',
+		signature: String.raw`\mathrm{d}y = f\,\mathrm{d}t + h\,\mathrm{d}N`,
+		abstract: `A patient trajectory is not smooth. Treatment lines start and stop, adverse events fire,
+			the patient dies. A neural ODE integrates a smooth vector field and cannot express any of that.
+			The fix is to integrate a state that follows an ODE between isolated instants and is displaced
+			discontinuously at those instants. I designed the model and extended a differentiable solver to
+			integrate it, detect and even predict its events, and backpropagate through them.`,
+		equations: [
+			{
+				tex: String.raw`\mathrm{d}y(t) \;=\; f\big(t, y(t)\big)\,\mathrm{d}t \;+\; \sum_{k=1}^{K} h_k\big(t, y(t^-)\big)\,\mathrm{d}N_k(t)`,
+				caption:
+					'The state follows a learned vector field between events, and is displaced by a learned jump map when stream k fires. Solutions are taken càdlàg, so the value reported at an event time is the state after the jump.'
+			},
+			{
+				tex: String.raw`\mathrm{d}\Lambda_{\mathcal{L}} \;=\; [\,m_\dagger = 0\,]\cdot[\,m_\ominus = 1\,]\cdot g_{\mathcal{L}}\big(\chi(t), t\big)\,\mathrm{d}t`,
+				caption:
+					'An event channel made structurally consistent via indicator masks: therapy initiation requires the patient to be alive and off treatment.'
+			}
+		],
+		points: [
+			{
+				heading: 'The augmented state carries its own bookkeeping',
+				body: `Alongside the latent representations, the model is conditioned on static covariates and dynamic state-space variables.
+					Structural constraints are embedded natively into the representation space rather than handled through post-hoc rejection or filtering.`
+			},
+			{
+				heading: 'Order-preserving integration across events',
+				body: `Discontinuities that occur within an integration interval degrade solver accuracy unless the step size is adapted to align with the transition boundary.
+					For history-dependent methods, these transitions further invalidate prior trajectory data, necessitating a solver reset.`
+			},
+			{
+				heading: 'Adjoints through a non-invertible jump map',
+				body: `Adjoint-based gradient calculation with constant memory relies on running the sensitivity equations backward along the trajectory.
+					However, non-invertible state transitions disrupt this continuous formulation, requiring explicit handling of event coordinates and sensitivity updates across the discontinuities.`
+			},
+			{
+				heading: 'Two mechanisms: replay at training, generate at sampling',
+				body: `Training conditions on the events that were actually observed and replays them at their
+					recorded times. Sampling has no such record, so the same model runs against a stochastic
+					mechanism that draws its own event times from the hazards it is integrating`
+			}
+		],
+		keywords: [
+			'neural ODE',
+			'jump processes',
+			'càdlàg',
+			'adjoint sensitivity',
+			'event detection',
+			'generative modelling'
+		],
+		artifacts: [
+			{
+				label: 'torchdiffeq — jump ODE fork',
+				href: 'https://github.com/ramizouari/torchdiffeq',
+				note: 'Jump mechanism, event detection, multistep restart and adjoint support added on top of the reference differentiable ODE solver.'
+			},
+			{
+				label: 'multinode',
+				note: 'The jump VAE: fixed and stochastic jump mechanisms, the latent projection that keeps the hazards out of the jump, and the recurrent / terminal channel split.'
+			}
+		]
+	},
+	{
+		slug: 'survival-odes',
+		index: '03',
+		title: 'Survival latent ODEs',
+		kicker: 'Survival curves from the generative model, not fitted after it',
+		period: '2025 — 2026',
+		context: 'InovIntell · COMPASS',
+		signature: String.raw`S(t) = e^{-\Lambda(t)}`,
+		abstract: `Continuous dynamical models naturally generate state paths, but time-to-event supervision requires
+			aligning these trajectories with target observation densities. Embedding the running integrals required
+			for event modeling directly into the state evolution allows the system to compute downstream risk curves
+			and likelihood functions natively and with matched numerical fidelity.`,
+		equations: [
+			{
+				tex: String.raw`\frac{\mathrm{d}}{\mathrm{d}t}\begin{pmatrix} z \\ \Lambda \end{pmatrix} = \begin{pmatrix} f_\theta(z) \\ h_\theta(z) \end{pmatrix}`,
+				caption:
+					'The integrated system couples the primary latent dynamics with an auxiliary accumulating state. By adequate parametrization, the system guarantees valid decay in the downstream event probabilities directly from the integration dynamics, ensuring theoretical consistency by construction.'
+			},
+			{
+				tex: String.raw`\ell \;=\; \begin{cases} -\log h(T) + \Lambda(T), & \text{event at } T \\[2pt] \Lambda(C), & \text{censored at } C \end{cases}`,
+				caption:
+					'An observed event contributes its log-intensity plus the hazard accumulated up to it; a censored observation contributes only what accumulated before follow-up ended. Treating the two the same is the standard way to bias a survival model, and the loss refuses to.'
+			},
+			{
+				tex: String.raw`\log p_\theta(x \mid z) \;=\; \sum_{(t,d)\,\in\,\mathcal{O}} \log \mathcal{N}\!\big(x_{t,d};\ \hat{x}_{t,d},\ \sigma_d^{2}\big)`,
+				caption:
+					'Clinical data is missing in patterns that mean something, so the reconstruction likelihood is a sum over 𝒪, the set of measurements that were actually made: an absent one contributes nothing rather than a zero.'
+			}
+		],
+		points: [
+			{
+				heading: 'The hazard belongs in the state',
+				body: `Augmenting the ODE with Λ means one solver call produces the trajectory and the
+					cumulative hazard together, consistently, at whatever tolerance the solver was given. A
+					hazard summed separately after the fact is a different quantity from the one the dynamics
+					imply, and the discrepancy shows up exactly where survival curves are read.`
+			},
+			{
+				heading: 'Right-censoring is the normal case',
+				body: `Because most patients remain event-free throughout their observation window, integration intervals are determined dynamically for each individual based on their terminal event or monitoring cut-off. Coincident event and censoring indicators are resolved conservatively to preserve valid clinical observation semantics..`
+			},
+			{
+				heading: 'Terminal and recurrent channels',
+				body: `Patient trajectories frequently involve both repeatable clinical complications and definitive terminal endpoints. The framework accommodates these dynamics concurrently, maintaining dedicated event processes to model recurrent adverse occurrences separately from terminal clinical boundaries.`
+			},
+			{
+				heading: 'Masking, all the way down',
+				body: `In clinical time-series, the timing and absence of tests carry distinct diagnostic meaning. The framework accounts for these sampling patterns across all normalization steps and training objectives, preventing unrecorded clinical observations from distorting patient state representations or biasing outcome likelihoods.`
+			}
+		],
+		keywords: [
+			'survival analysis',
+			'cumulative hazard',
+			'right-censoring',
+			'neural ODE',
+			'variational inference',
+			'masked losses'
+		],
+		artifacts: [
+			{
+				label: 'multinode',
+				note: 'The hazard-augmented node, the censored and masked survival log-likelihood, the survival-augmented ELBO, and the masked reduction machinery underneath them.'
+			},
+			{
+				label: 'synthetic_multinode',
+				note: 'Training, Cox metrics, and the experiments that score the model against Kaplan–Meier curves rather than only against marginals.'
+			}
+		]
+	},
+	{
+		slug: 'optimal-transport',
+		signature: String.raw`\inf_{\gamma \in \Gamma(\mu,\nu)} \int c\,\mathrm{d}\gamma`,
+		index: '04',
+		title: 'Constrained optimal transport',
+		kicker: 'Moving a population onto statistics you can read, but data you cannot',
+		period: '2025 — 2026',
+		context: 'InovIntell · COMPASS',
+		abstract: `Comparing two clinical trials indirectly means making their populations comparable. You have
+			individual patient-level data for one trial and, for the other, only what was published: a mean,
+			a standard deviation, a proportion above a threshold, a few quantiles. The question is how to move
+			the source population so that it matches those numbers while disturbing its joint structure as
+			little as possible. That is an optimal transport problem with marginal constraints.`,
+		equations: [
+			{
+				tex: String.raw`\mathcal{L}(\mu,\nu,c) \;=\; \inf_{\gamma \in \Gamma(\mu,\nu)} \iint_{\mathcal{X}\times\mathcal{Y}} c(x,y)\,\mathrm{d}\gamma(x,y)`,
+				caption:
+					'Kantorovich’s formulation. The goal is to find a transport plan γ that maps a source population μ to a target population ν.'
+			},
+			{
+				tex: String.raw`\text{Minimise}\quad \mathcal{C}(\nu) \;=\; \min_{\nu \in \mathrm{Distributions}(\mathcal{Y})} \mathcal{L}(\mu,\nu,c) \quad \text{s.t} \quad g(\nu)=0`,
+				caption:
+					'Constrained version of Optimal Transport. The goal is to find the "closest" target distribution ν that verifies the constraints, and its associated transport plan γ.'
+			},
+			{
+				tex: String.raw`T(x) \;=\; \sqrt{v^{\nu} \oslash v^{\mu}} \odot \big(x - m^{\mu}\big) + m^{\nu}, \qquad T = F_\nu^{-1} \circ F_\mu`,
+				caption:
+					'Closed forms where they exist: the affine map is optimal when only a mean and a variance are published, the monotone rearrangement when a quantile function can be reconstructed.'
+			}
+		],
+		points: [
+			{
+				heading: 'A taxonomy, not a bag of tricks',
+				body: `With a few assumptions, the problem splits along two axes, the decomposition structure (unconditional, conditionally on a fixed group, conditionally on a variable group) and the variable type together with which
+					target statistics are actually available. With that in hand, we attack each variant, case by case.`
+			},
+			{
+				heading: 'Partial information is the normal case',
+				body: `A published table rarely gives a full marginal. It gives a threshold proportion, or a single
+					quantile, or an integer count. Those become constraints on ν rather than a specification of it,
+					and the transport problem is solved subject to them.`
+			},
+			{
+				heading: 'Conditioning that is allowed to move',
+				body: `In some formulations, a conditioning variable such as the treatment arm is itself shifted by the transport. 
+					This constitute a recursive optimal transport problem, where the outer one can be solved via Linear Programming.`
+			},
+			{
+				heading: 'Constraints are checked, not assumed',
+				body: `Every transport reports whether the constraints it was given were actually met, and
+					over-determined specifications are prioritised explicitly rather than silently.`
+			}
+		],
+		keywords: [
+			'Optimal Transport',
+			'Kantorovich duality',
+			'Sinkhorn',
+			'Linear Programming',
+			'quantile transport',
+			'indirect treatment comparison'
+		],
+		artifacts: [
+			{
+				label: 'cot — constrained optimal transport',
+				note: 'Categorical, expectation, variance, quantile, threshold and bin-constrained methods; mixed and stratified transports; a neural transport module; and a documented derivation for each.'
+			},
+			{
+				label: 'multinode_compass',
+				note: 'The ITC pipeline that consumes it: three sharded stages, bootstrap Kaplan–Meier bands, and anchored / unanchored comparisons.'
 			}
 		]
 	},

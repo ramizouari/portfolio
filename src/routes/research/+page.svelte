@@ -49,7 +49,7 @@
 	<title>Research — {profile.name}</title>
 	<meta
 		name="description"
-		content="Latent jump ODEs, survival latent ODEs, constrained optimal transport, a dimensionless trading agent, and learning to solve mean-payoff games on graphs."
+		content="Reinforcement learning for trading, latent jump ODEs, survival latent ODEs, constrained optimal transport, and learning to solve mean-payoff games on graphs."
 	/>
 </svelte:head>
 
@@ -57,9 +57,8 @@
 	<p class="eyebrow">02 — Research</p>
 	<h1>Research</h1>
 	<p class="lede">
-		I work at the point where a modelling assumption becomes a line of code. These are the five
-		threads that have taken most of my attention — what the problem actually was, the mathematics I
-		settled on, and the part that turned out to be harder than it looked.
+		Most of my work happens where mathematical assumptions hit production code. Below are five
+		problems that took most of my focus over the past few years.
 	</p>
 
 	<nav class="jump" aria-label="Research threads">
