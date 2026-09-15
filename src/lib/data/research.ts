@@ -250,99 +250,100 @@ export const threads: Thread[] = [
 	},
 	{
 		slug: 'reinforcement-learning',
-		signature: String.raw`a_t=\operatorname{clip}\!\left(s_t\,\sigma^{\star}/\hat\sigma_t,\,-1,\,1\right)`,
+		signature: String.raw`\bigl|\mathbb{E}[r_{t+1}\mid o_t]\bigr|\ \ll\ \sigma_t`,
 		index: '04',
-		title: 'A dimensionless trading agent',
-		kicker: 'What a policy can learn from hourly prices, and what the fees take back',
+		title: 'Reinforcement learning for trading',
+		kicker: 'A natural setting for a trading agent — and a hostile one',
 		period: '2026 — present',
 		context: 'RobotBulls',
-		abstract: `A trading agent is an easy thing to build badly. and the one I inherited had been: a
-			240 000-parameter Q-network trained on 159 bars per fold, fed prices in dollars through a scaler
-			refit every week, trading 55 times a week with no directional skill. The redesign starts from the
-			inputs — every feature invariant to the price, volume and volatility level — and works up: a
-			35 000-parameter recurrent PPO agent that emits conviction rather than exposure, risk that enters
-			as sizing and objective rather than as a veto, pre-training on seven years of history under a
-			frozen evaluation calendar, and a post-mortem that traced the first full run's loss to turnover
-			and fixed it at the source. Then the same loop, run against the exchange.`,
+		abstract: `Reinforcement learning is the natural setting for a trading agent, but it is also a hostile one. The reward is a thin edge buried in noise, the market
+			does not hold still, the agent's own state feeds back into what it observes, and every modelling
+			choice left to a default becomes a leak or a bias. So the agent and the instrument had to be
+			built with equal care: a trading environment in which every detail is a decision, an indicator
+			layer that cannot see the future and computes identically live and in replay, invariances that
+			make inputs and actions mean the same thing across regimes, and a framework in which backtest,
+			training and live execution are the same code.`,
 		equations: [
 			{
-				tex: String.raw`\mathrm{mom}_k=\frac{\ln\left(c_t/c_{t-k}\right)}{\hat\sigma_t\sqrt{k}},\qquad x\leftarrow\operatorname{clip}_{\pm 5}\!\left(1.349\,\frac{x-\operatorname{med}}{\operatorname{IQR}}\right)`,
+				tex: String.raw`\bigl|\mathbb{E}[r_{t+1}\mid o_t]\bigr| \ \ll\ \sigma_t, \qquad \mathrm{SR}_{\mathrm{gross}}\ \approx\ \mathrm{IC}\,\sqrt{N}`,
 				caption:
-					'A momentum feature is a t-statistic, not a price difference: divide the log-return by the volatility over its horizon and it means the same thing in a calm market and a turbulent one. The second stage — one robust affine map fitted on data strictly before the first evaluated bar, stored in the checkpoint, never refit — is what lets a chain of checkpoints share an input space.'
+					'The conditional edge in an hourly return is a few basis points against a standard deviation of the order of a percent. One reward per step therefore carries almost no information about the decision that produced it, and the fundamental law bounds what any policy can extract: an edge of a few percent in correlation only pays at the cadence at which it exists.'
 			},
 			{
-				tex: String.raw`\begin{aligned}a_t&=\operatorname{clip}\!\left(s_t\,\sigma^{\star}/\hat\sigma_t,\,-1,\,1\right)\\ r_t&=\Delta\ln W_t-\tfrac{\lambda}{2}\left(\Delta\ln W_t\right)^{2}-\beta\,\big(\mathrm{DD}_t-\mathrm{DD}_{\mathrm{tol}}\big)_{+}-\kappa\,\lvert\Delta a_t\rvert\end{aligned}`,
+				tex: String.raw`\frac{2f}{\sigma}\ \text{per round trip}, \qquad h^{\star}\ \approx\ \frac{2f}{\mu}`,
 				caption:
-					'The actor emits a conviction s ∈ [−1, 1]; a deterministic sizer turns it into exposure at constant risk per unit of conviction, so the same output means the same thing in every volatility regime. The reward is the second-order expansion of a CARA utility with a drawdown penalty and — added by the post-mortem — a turnover term priced in fee units. PPO scores the signal; the environment consumes the action.'
+					'Costs are the part of the problem the reward hides. A round trip is a fixed fraction of a standard deviation whatever the direction was right or wrong, and the holding period that breaks even on it is long compared with the hourly bar. Unless the environment prices turnover explicitly, churn is the first behaviour a policy discovers and the last it unlearns.'
 			},
 			{
-				tex: String.raw`\mathrm{SR}_{\mathrm{gross}}\;\approx\;\mathrm{IC}\sqrt{N}\;\approx\;0.05\sqrt{365}\;\approx\;1,\qquad \frac{2f}{\hat\sigma_{1\mathrm{h}}}\approx 0.27`,
+				tex: String.raw`o_t = (m_t,\ p_t), \qquad p_t \sim d^{\pi} \ \Longrightarrow\ \operatorname{supp} d^{\pi_{\mathrm{old}}} \neq \operatorname{supp} d^{\pi}`,
 				caption:
-					'The fundamental law bounds what the signal can pay. An information coefficient of 0.05 at a daily horizon is a gross Sharpe of order one — if and only if the policy trades at that cadence. A round trip at 10 bp costs 0.27 hourly standard deviations, so rebalancing every hour spends roughly 40 % a year chasing 5.6 % of gross edge. That arithmetic is what v1 lost to.'
+					'The observation contains the market and the portfolio, and the portfolio is a consequence of the policy. A transition stored under an earlier policy encodes a state the current one would never reach, so the usual off-policy machinery is evaluated off-support — the environment dictates the family of algorithms before any of them is tried.'
 			}
 		],
 		points: [
 			{
-				heading: 'Units are the leak',
-				body: `Raw closes, moving averages and MACD in price units, a StandardScaler refit on each fold's
-					own slice: fold 36's scaler maps 2 400 to zero, fold 76's maps 4 000, and a checkpoint chained
-					across them inherits weights trained in an input space that no longer exists. The 42
-					replacement features come from four sanctioned families — log ratios, relative deviations,
-					volatility scaling, bounded ranks — and a test rescales price and volume together and requires
-					every feature unchanged to 1e-6.`
+				heading: 'Natural, and hostile',
+				body: `Everything about trading fits the partially observable Markov decision process, and everything about the data
+					fights the estimator. The signal-to-noise ratio per decision is brutal, the relationship
+					between features and returns drifts and occasionally inverts, transaction costs enter the
+					return at second order, and the amount of genuinely independent out-of-sample data is measured
+					in months. 
+					
+					None of this is a reason not to use reinforcement learning. Instead, all of it is a reason
+					to build the instrument before running the experiment.`
 			},
 			{
-				heading: 'Capacity, history, and a calendar that is data',
-				body: `1 514 parameters per training bar is not fixed by a better algorithm. The model shrinks to
-					a GRU-64 trunk with actor, critic, auxiliary and quantile heads, and the data grows: 49 332
-					bars of history before the first evaluated bar, a second asset as a cross-asset regulariser
-					with the other asset's columns stripped by assertion, then KL-anchored fine-tuning fold by
-					fold. The 65 test slices are shipped as a CSV, so no hyper-parameter can move the evaluation
-					set.`
+				heading: 'The environment is the specification',
+				body: `When a fill happens relative to the bar the agent has seen, what a fee is charged on, how
+					a requested size becomes a realised position, what the agent observes of its own book, when
+					an episode ends and what is settled when it does — each of these is a modelling decision, and
+					each default is a way to leak the future or bias the policy toward doing nothing or doing
+					too much. They were designed, written down and covered by tests rather than inherited.`
 			},
 			{
-				heading: 'Conviction, not exposure',
-				body: `The observation carries the portfolio, so a replayed transition encodes a state the current
-					policy would never reach — off-policy replay is off-support here, and decorrelation moves to
-					window sampling across 64 lanes instead. PPO is made recurrent by minibatching over lanes
-					with time intact, and the loss is pointed at the sampled signal while the environment consumes
-					the sized action. Auxiliary heads regress the next-day return and volatility in σ units — a
-					supervision two orders of magnitude denser than the reward.`
+				heading: 'Invariances by construction',
+				body: `Feeding raw price or volume units causes a policy to memorize the calendar rather than learn the market. 
+					To prevent this, strip out price levels, volume baselines, volatility regimes, and account size beforehand. 
+					Construct all observations to be scale-invariant, emit strictly scale-free actions verified by rescaling tests,
+					and embed risk directly into action sizing and reward scoring rather than bolting it on after training.`
 			},
 			{
-				heading: 'It lost on turnover, not direction',
-				body: `v1's mean fold return was −0.70 %; its fees were 1.13 %. Gross of costs it was positive, its
-					allocation correlated 0.003 with the next return, and its fine-tuning was inert — fold returns
-					with and without it correlated 0.985, because early stopping on one noisy validation episode
-					selected almost no training. Three levers with a mechanism behind them — a turnover penalty,
-					an EMA of the conviction signal, a drawdown gate inside the sizer — cut trades from 55 to 14 a
-					week and moved the tiled Sharpe from −1.0 to about 2 across seeds. Deflated for the ~25 arms
-					tried, no single Sharpe is significant; what survives is that every smoothed configuration is
-					positive on every seed, and 1.16 years of hourly data cannot say more than that.`
+				heading: 'Indicators that cannot lie',
+				body: `Technical indicators depend strictly on bar history and must evaluate in two ways: step-by-step for live stepping (preventing lookahead bias) and vectorized across full windows for backtesting.
+
+A unified interface enforces shared warm-up periods, composes indicators into DAGs computed once per split, and uses a batched,
+GPU-native tensor implementation with per-lane state. Both execution modes are tested bar-for-bar to ensure production matches research,
+preventing backtest leakage.`
 			},
 			{
-				heading: 'The walk-forward loop, with the market in it',
-				body: `Live inference is not a port of the agent into a bot. It is the library's own evaluation
-					loop with three substitutions: bars arrive from the feed, the account API is the ledger — read
-					every hour, never evolved — and the trade the environment plans goes to the venue instead of
-					filling at the next open. Parity with the backtest is by construction and tested to the
-					digit: a maximum action difference of 7e-7 over a scored slice. Shadow first, with a nightly
-					replay as the oracle; then paper fills; then size.`
+				heading: 'A robust and profitable agent',
+				body: `The agent that came out of it is the one that takes all of this literally. Its inputs are
+					engineered rather than collected. Tensorized simulations optimized the model, maximizing both GPU utilization and training throughput. 
+					The validated model earned its deployment through strict tests before it was allowed
+					anywhere near the exchange.`
+			},
+			{
+				heading: 'One framework, or none of it holds',
+				body: `One environment core exposed to more than one reinforcement-learning stack, one
+					indicator layer beneath both, a test suite for causality, unit invariance and the equivalence
+					of every execution mode, and a live loop that is the evaluation loop with the market
+					substituted for the file — feed in, account as ledger, planned trade out — so that parity
+					between backtest and production is by construction and checked every day.`
 			}
 		],
 		keywords: [
-			'recurrent PPO',
-			'TorchRL',
-			'volatility targeting',
-			'dimensionless features',
-			'walk-forward',
-			'deflated Sharpe',
-			'live trading'
+			'reinforcement learning',
+			'trading environments',
+			'technical indicators',
+			'transaction costs',
+			'non-stationarity',
+			'backtest–live parity',
+			'TorchRL'
 		],
 		artifacts: [
 			{
 				label: 'rl_notebooks',
-				note: 'The rl_trading library: the environment family, dimensionless features and the frozen normaliser, recurrent PPO with auxiliary heads, pre-training and walk-forward drivers, the live loop — and the design, post-mortem and feasibility documents behind each.'
+				note: 'The rl_trading library: environments, indicators, agents, the training and evaluation protocol, and the live loop — with the design and review documents behind each.'
 			}
 		]
 	},
