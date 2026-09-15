@@ -109,9 +109,9 @@ export const threads: Thread[] = [
 					'An observed event contributes its log-intensity plus the hazard accumulated up to it; a censored observation contributes only what accumulated before follow-up ended. Treating the two the same is the standard way to bias a survival model, and the loss refuses to.'
 			},
 			{
-				tex: String.raw`\mathcal{L} \;=\; \lVert M \odot (x - \hat{x}) \rVert^2 \;+\; \beta\, D_{\mathrm{KL}}\!\big(q \,\Vert\, p\big) \;+\; \lambda\, \ell_{\text{surv}}`,
+				tex: String.raw`\log p_\theta(x \mid z) \;=\; \sum_{(t,d)\,\in\,\mathcal{O}} \log \mathcal{N}\!\big(x_{t,d};\ \hat{x}_{t,d},\ \sigma_d^{2}\big)`,
 				caption:
-					'The survival term enters the ELBO with its own weight, alongside a reconstruction masked by M so that it only scores observations that were actually made.'
+					'Clinical data is missing in patterns that mean something, so the reconstruction likelihood is a sum over 𝒪, the set of measurements that were actually made: an absent one contributes nothing rather than a zero.'
 			}
 		],
 		points: [
@@ -124,24 +124,15 @@ export const threads: Thread[] = [
 			},
 			{
 				heading: 'Right-censoring is the normal case',
-				body: `Most patients have not had the event when follow-up ends. The likelihood locates a
-					stopping index per instance — first event, first censoring mark, or the last step — and
-					integrates to there; an event coinciding with a censoring mark is suppressed and the
-					observation treated as censored, because that is what it is.`
+				body: `Because most patients remain event-free throughout their observation window, integration intervals are determined dynamically for each individual based on their terminal event or monitoring cut-off. Coincident event and censoring indicators are resolved conservatively to preserve valid clinical observation semantics..`
 			},
 			{
 				heading: 'Terminal and recurrent channels',
-				body: `The hazard vector is not one number. It splits into terminal channels, which are
-					absorbing and admit at most one event per trajectory, and recurrent channels for adverse
-					events that can fire repeatedly. They need different likelihood treatment, and the model
-					carries the split explicitly rather than collapsing everything into a single time-to-event.`
+				body: `Patient trajectories frequently involve both repeatable clinical complications and definitive terminal endpoints. The framework accommodates these dynamics concurrently, maintaining dedicated event processes to model recurrent adverse occurrences separately from terminal clinical boundaries.`
 			},
 			{
 				heading: 'Masking, all the way down',
-				body: `Clinical data is missing in patterns that mean something. Masked reductions, mask
-					broadcasting and a masked ELBO make "not observed" propagate correctly through
-					normalisation, reconstruction and the survival term — so an absent measurement contributes
-					nothing rather than contributing a zero.`
+				body: `In clinical time-series, the timing and absence of tests carry distinct diagnostic meaning. The framework accounts for these sampling patterns across all normalization steps and training objectives, preventing unrecorded clinical observations from distorting patient state representations or biasing outcome likelihoods.`
 			}
 		],
 		keywords: [
