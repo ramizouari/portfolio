@@ -28,9 +28,8 @@ export const threads: Thread[] = [
 		abstract: `A patient trajectory is not smooth. Treatment lines start and stop, adverse events fire,
 			the patient dies. A neural ODE integrates a smooth vector field and cannot express any of that.
 			The fix is to integrate a state that follows an ODE between isolated instants and is displaced
-			discontinuously at those instants — an augmented jump SDE with no diffusion term, which is
-			exactly a latent jump ODE. I designed the model and extended a differentiable solver to
-			integrate it, detect its events, and backpropagate through them.`,
+			discontinuously at those instants. I designed the model and extended a differentiable solver to
+			integrate it, detect and even predict its events, and backpropagate through them.`,
 		equations: [
 			{
 				tex: String.raw`\mathrm{d}y(t) \;=\; f\big(t, y(t)\big)\,\mathrm{d}t \;+\; \sum_{k=1}^{K} h_k\big(t, y(t^-)\big)\,\mathrm{d}N_k(t)`,
@@ -38,42 +37,32 @@ export const threads: Thread[] = [
 					'The state follows a learned vector field between events, and is displaced by a learned jump map when stream k fires. Solutions are taken càdlàg, so the value reported at an event time is the state after the jump.'
 			},
 			{
-				tex: String.raw`y = (z, \Lambda) \in \mathbb{R}^{L} \times \mathbb{R}^{K}, \qquad G(t,y) \;=\; y + P^{\top} h\big(t, Py\big)\,\mathrm{d}N`,
+				tex: String.raw`\mathrm{d}\Lambda_{\mathcal{L}} \;=\; [\,m_\dagger = 0\,]\cdot[\,m_\ominus = 1\,]\cdot g_{\mathcal{L}}\big(\chi(t), t\big)\,\mathrm{d}t`,
 				caption:
-					'Only the latent block z may jump. A cumulative hazard that jumped would no longer be the integral of anything and S(t) = exp(−Λ(t)) would stop meaning anything, so the jump is scattered through a coordinate projection P rather than applied to the whole state.'
-			},
-			{
-				tex: String.raw`\mathrm{d}\Lambda_{\mathcal{L}_{s,i}} \;=\; [\,m_\dagger = 0\,]\cdot[\,m_\ominus = 1\,]\cdot[\,c = i-1\,]\cdot g_{\mathcal{L}_{s,i}}\big(\chi(t), t\big)\,\mathrm{d}t`,
-				caption:
-					'Each event channel carries a gate. A line of therapy can only start if the patient is alive, currently off treatment, and has started exactly i−1 lines — the bookkeeping is part of the state, not of the training loop.'
+					'An event channel made structurally consistent via indicator masks: therapy initiation requires the patient to be alive and off treatment.'
 			}
 		],
 		points: [
 			{
 				heading: 'The augmented state carries its own bookkeeping',
-				body: `Alongside the free latent block sits the frozen baseline conditioning, normalised time,
-					a line counter, a belief over the regimen in force living in the simplex, an off-treatment
-					mask and a death mask. Structure that would otherwise be enforced by post-hoc filtering is
-					instead unrepresentable.`
+				body: `Alongside the latent representations, the model is conditioned on static covariates and dynamic state-space variables.
+					Structural constraints are embedded natively into the representation space rather than handled through post-hoc rejection or filtering.`
 			},
 			{
 				heading: 'Order-preserving integration across events',
-				body: `An event that lands mid-step destroys the accuracy of the underlying Runge–Kutta method
-					unless the step is cut at the event time. Multistep solvers additionally have to be restarted:
-					their history is no longer a history of the same function.`
+				body: `Discontinuities that occur within an integration interval degrade solver accuracy unless the step size is adapted to align with the transition boundary.
+					For history-dependent methods, these transitions further invalidate prior trajectory data, necessitating a solver reset.`
 			},
 			{
 				heading: 'Adjoints through a non-invertible jump map',
-				body: `Constant-memory backpropagation runs the adjoint backwards through the solution. A jump
-					map that cannot be inverted breaks the usual argument — the reverse pass has to be told where
-					the events were and how to transport the adjoint across each one.`
+				body: `Adjoint-based gradient calculation with constant memory relies on running the sensitivity equations backward along the trajectory.
+					However, non-invertible state transitions disrupt this continuous formulation, requiring explicit handling of event coordinates and sensitivity updates across the discontinuities.`
 			},
 			{
 				heading: 'Two mechanisms: replay at training, generate at sampling',
 				body: `Training conditions on the events that were actually observed and replays them at their
 					recorded times. Sampling has no such record, so the same model runs against a stochastic
-					mechanism that draws its own event times from the hazards it is integrating — the coupled
-					case, where every channel competes over the same clock.`
+					mechanism that draws its own event times from the hazards it is integrating`
 			}
 		],
 		keywords: [
@@ -100,21 +89,19 @@ export const threads: Thread[] = [
 		slug: 'survival-odes',
 		index: '02',
 		title: 'Survival latent ODEs',
-		kicker: 'Put the hazard inside the state, and the likelihood becomes computable',
+		kicker: 'Survival curves from the generative model, not fitted after it',
 		period: '2025 — 2026',
 		context: 'InovIntell · COMPASS',
 		signature: String.raw`S(t) = e^{-\Lambda(t)}`,
-		abstract: `A latent ODE gives you a trajectory. It does not give you a likelihood over event
-			times, and without one there is nothing to train a survival model against. The fix is to stop
-			treating the cumulative hazard as something computed after the fact and make it part of the
-			integrated state, so the solver produces it to the same order of accuracy as the latent
-			trajectory itself — and everything downstream, the log-likelihood, the censoring, the survival
-			curve, follows from a quantity the model actually owns.`,
+		abstract: `Continuous dynamical models naturally generate state paths, but time-to-event supervision requires
+			aligning these trajectories with target observation densities. Embedding the running integrals required
+			for event modeling directly into the state evolution allows the system to compute downstream risk curves
+			and likelihood functions natively and with matched numerical fidelity.`,
 		equations: [
 			{
 				tex: String.raw`\frac{\mathrm{d}}{\mathrm{d}t}\begin{pmatrix} z \\ \Lambda \end{pmatrix} = \begin{pmatrix} f_\theta(z) \\ h_\theta(z) \end{pmatrix}`,
 				caption:
-					'The state handed to the solver is the pair (z, Λ), started at Λ(0) = 0. The hazard head is literally the derivative of the cumulative hazard, held non-negative by a softplus — so Λ is non-decreasing and S(t) = exp(−Λ(t)) is a survival function by construction rather than by hope.'
+					'The integrated system couples the primary latent dynamics with an auxiliary accumulating state. By adequate parametrization, the system guarantees valid decay in the downstream event probabilities directly from the integration dynamics, ensuring theoretical consistency by construction.'
 			},
 			{
 				tex: String.raw`\ell \;=\; \begin{cases} -\log h(T) + \Lambda(T), & \text{event at } T \\[2pt] \Lambda(C), & \text{censored at } C \end{cases}`,
@@ -265,19 +252,19 @@ export const threads: Thread[] = [
 			training and live execution are the same code.`,
 		equations: [
 			{
-				tex: String.raw`\bigl|\mathbb{E}[r_{t+1}\mid o_t]\bigr| \ \ll\ \sigma_t, \qquad \mathrm{SR}_{\mathrm{gross}}\ \approx\ \mathrm{IC}\,\sqrt{N}`,
+				tex: String.raw`\begin{aligned}a_t &= \pi(o_t), \qquad o_t \in \mathcal{F}_t\\ \mathrm{d}P^{\mathrm{mid}}_u &= \sigma_u\,\mathrm{d}B_u + \gamma\,v_u\,\mathrm{d}u, \qquad \textstyle\int_{t+\delta}^{t+\delta+\tau} v_u\,\mathrm{d}u = \Delta S_t\\ \tilde P_u &= P^{\mathrm{mid}}_u + \operatorname{sgn}(v_u)\big(\tfrac{1}{2}\,s_u + \iota(v_u/D_u)\big)\\ P^{\mathrm{exec}}_t &= \frac{1}{\Delta S_t}\int_{t+\delta}^{t+\delta+\tau}\! v_u\,\tilde P_u\,\mathrm{d}u \;\notin\; \mathcal{F}_t\end{aligned}`,
 				caption:
-					'The conditional edge in an hourly return is a few basis points against a standard deviation of the order of a percent. One reward per step therefore carries almost no information about the decision that produced it, and the fundamental law bounds what any policy can extract: an edge of a few percent in correlation only pays at the cadence at which it exists.'
+					'Execution is a process, not an instant. The order arrives after a latency δ and is worked over a window τ. Meanwhile the mid keeps moving, and the order itself pushes it, causing a permanent impact γ on the market. Each fill crosses half the spread and pays a temporary impact ι that grows with participation. None of this is known when the decision is made.'
 			},
 			{
-				tex: String.raw`\frac{2f}{\sigma}\ \text{per round trip}, \qquad h^{\star}\ \approx\ \frac{2f}{\mu}`,
+				tex: String.raw`\begin{aligned}\mathrm{d}W_t &= \mathrm{d}C_t + P_t\,\mathrm{d}S_t + S_t\,\mathrm{d}P_t + \mathrm{d}[S,P]_t\\ &= S_t\,\mathrm{d}P_t \;-\; \alpha\,P_t\,\lvert\mathrm{d}S_t\rvert\end{aligned}`,
 				caption:
-					'Costs are the part of the problem the reward hides. A round trip is a fixed fraction of a standard deviation whatever the direction was right or wrong, and the holding period that breaks even on it is long compared with the hourly bar. Unless the environment prices turnover explicitly, churn is the first behaviour a policy discovers and the last it unlearns.'
+					'Wealth as a semimartingale, in the environment’s own accounting. The presence of fees forces the strategy to have finite variation, and  the quadratic covariation with the price vanishes because of the medium frequency trading.'
 			},
 			{
-				tex: String.raw`o_t = (m_t,\ p_t), \qquad p_t \sim d^{\pi} \ \Longrightarrow\ \operatorname{supp} d^{\pi_{\mathrm{old}}} \neq \operatorname{supp} d^{\pi}`,
+				tex: String.raw`x_t = \phi\big(b_{\le t}\big), \qquad \phi^{\mathrm{stream}}\big(b_{\le t}\big) = \phi^{\mathrm{batch}}(b)_t \quad \forall\, t \ge t_{\mathrm{warm}}`,
 				caption:
-					'The observation contains the market and the portfolio, and the portfolio is a consequence of the policy. A transition stored under an earlier policy encodes a state the current one would never reach, so the usual off-policy machinery is evaluated off-support — the environment dictates the family of algorithms before any of them is tried.'
+					'The indicator contract. A feature is a function of the bars up to now and nothing else, so look-ahead is impossible by construction; and its streaming evaluation, one observation at a time, must equal its batch evaluation over a fixed history at every bar past the warm-up. The equality is tested bar for bar, because the same code runs in the backtest and against the exchange.'
 			}
 		],
 		points: [
