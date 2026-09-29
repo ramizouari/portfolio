@@ -101,8 +101,8 @@ preventing backtest leakage.`
 		],
 		artifacts: [
 			{
-				label: 'rl_notebooks',
-				note: 'The rl_trading library: environments, indicators, agents, the training and evaluation protocol, and the live loop — with the design and review documents behind each.'
+				label: 'TradeRL',
+				note: 'A complete Trading RL framework: environments, indicators, agents, the training and evaluation protocol, and the live loop.'
 			}
 		]
 	},
