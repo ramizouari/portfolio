@@ -28,26 +28,22 @@ export const projects: Project[] = [
 		featured: true,
 		visibility: 'private',
 		summary:
-			'The framework a trading agent has to stand on: one environment core behind Gymnasium and TorchRL, indicators that behave identically in backtest and live, an agent trained in tensorised simulations across a wide range of market conditions, and a live loop that is the backtest loop with the market in it.',
-		role: 'Architecture, environments, indicator layer, agent training, live loop.',
-		problem: `Reinforcement learning is the natural formalism for trading and a hostile one to train
-			in: the reward is a thin edge in heavy noise, the market drifts, the agent's own position feeds
-			back into its observations, and costs enter the return at second order. Every trading experiment
-			also needs the same primitives — a market, a portfolio, indicators, a trainer — and rebuilding them
-			per experiment is how two implementations quietly diverge and a result stops meaning anything.
-			So the framework comes first, and every modelling default in it is treated as a decision.`,
+			'The framework a trading agent has to stand on: one environment core behind Gymnasium and TorchRL, a market engine for history and simulation, indicators that behave identically in backtest and live, agents trained in tensorized simulations across a wide range of market conditions and combined into an ensemble, and a live loop that is the backtest loop with the market in it.',
+		role: 'Architecture, environments, market engine, indicator layer, agent training and ensembling, evaluation, live loop.',
+		problem: `Reinforcement learning fits trading well, but it is hard to train due to noisy rewards, non-stationary markets, potentially reactive market and costs. Every experiment also needs the same basic pieces, like market data, portfolio tracking, features, and a training loop. Rebuilding those from scratch leads to small inconsistencies that make results unreliable. Build a shared framework first, and choose every default deliberately.`,
 		approach: [
-			'Implemented the environment against one shared core and exposed it to both Gymnasium and TorchRL, then built the tensorised version — batched lanes stepped together on device, subwindow sampling, explicit execution timing so the agent never fills at a price it has already seen.',
-			'Made the environment the specification: fee and slippage accounting, how a requested size becomes a position, risk limits and their anchoring, episode boundaries and settlement, and what the agent observes of its own book — each explicit and under test.',
-			'Designed the technical-indicator layer around two execution modes behind one interface — streaming for live stepping, precalculated-and-replayed for backtests — with a torch-native batched implementation and CUDA tests.',
-			'Made observations and actions invariant to price level, volatility regime and account size, and placed risk in the sizing and the objective rather than in a post-hoc gate.',
-			'Trained the agent on engineered, scale-free inputs against many environments stepped together on device, each started at an independent point in history, so one batch spans calm and turbulent markets alike — and gated its deployment on strict tests: out-of-sample scoring across seeds, causality and invariance checks, and replay of its recorded decisions to the digit.',
-			'Kept the evaluation protocol as data: a frozen out-of-sample calendar, temporal walls enforced by assertion, several seeds, and statistics deflated for every configuration tried.',
-			'Took it live as the evaluation loop itself run against the exchange — a bar store with freshness and gap gates, the account API as the ledger, guards for drawdown, exposure and outages, shadow and paper modes, nightly replay of recorded inputs — with a parity test against the backtest.',
-			'Wrote a C++23 header-only synthetic market for testing against known dynamics: streaming coroutine paths, Markov-switching jump diffusion, pluggable regime and jump processes, correlated assets and reverse-time generation.'
+			'Implemented the environment against one shared core and exposed it to both Gymnasium and TorchRL, then built the tensorized version.',
+			'Made the environment the specification: fee and slippage accounting, how a requested size becomes a position, risk limits and their anchoring, episode boundaries and settlement, and what the agent observes of its own book.',
+			'Built a market engine that runs the same agent on history or on simulated markets, with funding, margin, liquidation and market impact priced in.',
+			'Designed the technical-indicator layer around two execution modes behind one interface with a torch-native batched implementation.',
+			'Made observations and actions invariant to price level, volatility regime and account size, and modelled risk into the RL system.',
+			'Trained the agent on engineered, scale-free inputs against many environments in parallel to maximise bandwidth',
+			'Implemented a comprehensive evaluation suite to distinguish a profitable strategy from luck.',
+			'Combined six warm-started PPO agents with a frozen LightGBM forecaster into one robust ensemble agent, to ensure robustness.',
+			'Took it live as the evaluation loop itself run against the exchange.',
 		],
 		outcome:
-			'The framework is in place and under test, the protocol is fixed, and the agent built on it runs in shadow mode against the exchange with parity to the backtest checked every night.',
+			'The framework is in place and was used to deliver a profitable PPO agent, the protocol is fixed, the agent built on it runs in live mode against the exchange, currently in profit.',
 		stack: ['PyTorch', 'TorchRL', 'TensorDict', 'Gymnasium', 'pytest', 'LightGBM', 'C++23'],
 		metrics: [
 			{ value: '2', label: 'RL stacks, one core' },

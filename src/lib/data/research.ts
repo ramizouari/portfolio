@@ -25,13 +25,12 @@ export const threads: Thread[] = [
 		kicker: 'A natural setting for a trading agent — and a hostile one',
 		period: '2026 — present',
 		context: 'RobotBulls',
-		abstract: `Reinforcement learning is the natural setting for a trading agent, but it is also a hostile one. The reward is a thin edge buried in noise, the market
-			does not hold still, the agent's own state feeds back into what it observes, and every modelling
-			choice left to a default becomes a leak or a bias. So the agent and the instrument had to be
-			built with equal care: a trading environment in which every detail is a decision, an indicator
-			layer that cannot see the future and computes identically live and in replay, invariances that
-			make inputs and actions mean the same thing across regimes, and a framework in which backtest,
-			training and live execution are the same code.`,
+		abstract: `Reinforcement learning is the natural setting for a trading agent, but it is also a difficult one. With a noisy reward, 
+			a moving reactive market. Every modelling choice left to a default becomes a leak or a bias. 
+			With that, a complete RL Framework for trading, has been built, with which we develop our trading agents, encapsulating 
+			a trading environment in which every detail is a decision, a causal indicator
+			layer with consistent behaviour between live and in replay, invariances that
+			make inputs and actions mean the same thing across regimes, and an execution layer optimised for Hyperliquid trading.`,
 		equations: [
 			{
 				tex: String.raw`\begin{aligned}a_t &= \pi(o_t), \qquad o_t \in \mathcal{F}_t\\ \mathrm{d}P^{\mathrm{mid}}_u &= \sigma_u\,\mathrm{d}B_u + \gamma\,v_u\,\mathrm{d}u, \qquad \textstyle\int_{t+\delta}^{t+\delta+\tau} v_u\,\mathrm{d}u = \Delta S_t\\ \tilde P_u &= P^{\mathrm{mid}}_u + \operatorname{sgn}(v_u)\big(\tfrac{1}{2}\,s_u + \iota(v_u/D_u)\big)\\ P^{\mathrm{exec}}_t &= \frac{1}{\Delta S_t}\int_{t+\delta}^{t+\delta+\tau}\! v_u\,\tilde P_u\,\mathrm{d}u \;\notin\; \mathcal{F}_t\end{aligned}`,
@@ -43,11 +42,6 @@ export const threads: Thread[] = [
 				caption:
 					'Wealth as a semimartingale, in the environment’s own accounting. The presence of fees forces the strategy to have finite variation, and  the quadratic covariation with the price vanishes because of the medium frequency trading.'
 			},
-			{
-				tex: String.raw`x_t = \phi\big(b_{\le t}\big), \qquad \phi^{\mathrm{stream}}\big(b_{\le t}\big) = \phi^{\mathrm{batch}}(b)_t \quad \forall\, t \ge t_{\mathrm{warm}}`,
-				caption:
-					'The indicator contract. A feature is a function of the bars up to now and nothing else, so look-ahead is impossible by construction; and its streaming evaluation, one observation at a time, must equal its batch evaluation over a fixed history at every bar past the warm-up. The equality is tested bar for bar, because the same code runs in the backtest and against the exchange.'
-			}
 		],
 		points: [
 			{
@@ -58,16 +52,22 @@ export const threads: Thread[] = [
 					return at second order, and the amount of genuinely independent out-of-sample data is measured
 					in months. 
 					
-					None of this is a reason not to use reinforcement learning. Instead, all of it is a reason
-					to build the instrument before running the experiment.`
+					Any rigorous reinforcement learning based approach must handle all the instruments with meticulous care before running the experiments.`
 			},
 			{
 				heading: 'The environment is the specification',
-				body: `When a fill happens relative to the bar the agent has seen, what a fee is charged on, how
-					a requested size becomes a realised position, what the agent observes of its own book, when
-					an episode ends and what is settled when it does — each of these is a modelling decision, and
-					each default is a way to leak the future or bias the policy toward doing nothing or doing
-					too much. They were designed, written down and covered by tests rather than inherited.`
+				body: `When a fill happens relative to the bar the agent has seen, it is important to model how a fee is charged on, 
+					how a requested size becomes a realised position, what the agent observes of its own book, when
+					an episode ends and what is settled when it does. Every default is a way to leak the future or bias 
+					the policy toward doing nothing or doing too much. 
+					They were designed, written down and covered by tests rather than inherited.`
+			},
+			{
+				heading: 'Market as a plugin',
+				body: `The market sits behind one interface, so historical replay, stochastic models or history spliced
+					with injected events plug into the same environment, carrying their own funding, margin, liquidation
+					and impact. On a synthetic market the true edge is known, so a strategy can be checked against what
+					is there to find and stressed on regimes history has not shown yet.`
 			},
 			{
 				heading: 'Invariances by construction',
@@ -77,7 +77,7 @@ export const threads: Thread[] = [
 					and embed risk directly into action sizing and reward scoring rather than bolting it on after training.`
 			},
 			{
-				heading: 'Indicators that cannot lie',
+				heading: 'Causal and consistent indicators',
 				body: `Technical indicators depend strictly on bar history and must evaluate in two ways: step-by-step for live stepping (preventing lookahead bias) and vectorized across full windows for backtesting.
 
 A unified interface enforces shared warm-up periods, composes indicators into DAGs computed once per split, and uses a batched,
@@ -86,19 +86,9 @@ preventing backtest leakage.`
 			},
 			{
 				heading: 'A robust and profitable agent',
-				body: `The agent that came out of it is the one that takes all of this literally. Its inputs are
-					engineered rather than collected. Tensorized simulations optimized the model, maximizing both GPU utilization and training throughput. 
-					The validated model earned its deployment through strict tests before it was allowed
-					anywhere near the exchange.`
+				body: `A complete PPO agent was designed over the environment, and using the scale invariant features. It was trained using tensorized simulations, maximizing both GPU utilization and training throughput. 
+					The validated model earned its deployment through strict tests before it was integrated within the ensemble agent in live mode.`
 			},
-			{
-				heading: 'One framework, or none of it holds',
-				body: `One environment core exposed to more than one reinforcement-learning stack, one
-					indicator layer beneath both, a test suite for causality, unit invariance and the equivalence
-					of every execution mode, and a live loop that is the evaluation loop with the market
-					substituted for the file — feed in, account as ledger, planned trade out — so that parity
-					between backtest and production is by construction and checked every day.`
-			}
 		],
 		keywords: [
 			'reinforcement learning',

@@ -20,19 +20,22 @@ export const roles: Role[] = [
 		period: 'Apr 2026 — present',
 		start: '2026-04',
 		end: 'present',
-		location: 'Remote',
+		location: 'Geneve, Switzerland · Remote',
 		kind: 'research',
 		summary:
-			'Reinforcement learning for trading, and the environment, evaluation protocol and framework it takes to do it carefully.',
+			'Reinforcement learning for trading framework: environment, market simulator, trading agents, evaluation protocol, execution engine, and risk management.',
 		highlights: [
-			'Designed the trading environment from the ground up, including execution timing, fees, position sizing, risk limits, episode boundaries and what the agent sees of its own portfolio.',
-			'Exposed the environment implementation to both Gymnasium and TorchRL, including a tensorized version that runs many simulations in parallel on the GPU for training.',
+			'Designed the trading environment from the ground up to approximate real-world trading, including execution timing, fees, position sizing, risk limits, episode boundaries and what the agent sees of its own portfolio.',
+			'Built a market engine that runs the same agent on history or on simulated markets with funding, margin, liquidation and market impact priced in.',
+			'Exposed the environment implementation to both Gymnasium and TorchRL, including a tensorized version that runs in parallel on the GPU for training.',
 			'Wrote the technical-indicator layer so the same indicator can be computed one bar at a time in live trading or over a whole history in a backtest, and verified that the two agree bar for bar.',
-			'Made the agent’s inputs and actions invariant to price level, volatility regime and account size, and built risk into how positions are sized.',
+			'Made the agent’s inputs and actions invariant to price level, volatility regime and account size, and built risk into how positions are sized and how the agent is rewarded.',
 			'Trained the agent on engineered scale-free features across many market conditions in parallel.',
-			'Deployed it as a live loop that runs against exchange with safety guards and a robust execution engine'
+			'Hardened the evaluation protocol to distinguish profitable strategies from luck',
+			'Combined six warm-started PPO agents with a frozen LightGBM forecaster into a robust ensemble agent.',
+			'Deployed it as a live loop that runs against the exchange with safety guards, a carefully crafted execution engine, event-driven alerting, and a nightly replay that must reproduce every live decision.'
 		],
-		stack: ['PyTorch', 'TorchRL', 'TensorDict', 'Gymnasium', 'pytest', 'LightGBM', 'C++23']
+		stack: ['PyTorch', 'TorchRL', 'Gymnasium', 'LightGBM', 'C++23']
 	},
 	{
 		company: 'InovIntell',
