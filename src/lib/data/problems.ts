@@ -352,7 +352,7 @@ export const problems: Problem[] = [
 			},
 			{
 				label: 'Hard',
-				note: 'As many exchanges as he likes, in 7 s — the supremum is over every walk, so the iteration has to be shown to reach it.'
+				note: 'As many exchanges as he likes — the supremum is over every walk.'
 			}
 		],
 		statement: [
@@ -389,7 +389,18 @@ export const problems: Problem[] = [
 				 that limit onto $\\Phi$: monotonicity of $W$ lets the lower-bound induction push the
 				 hypothesis through the last edge of a walk, and after $k$ rounds the iterate is trivially
 				 bounded by the sup over walks of length $\\le k$. The normal version can stop at its cap;
-				 the hard one is exactly the statement that the limit is attained.`
+				 the hard one cannot, because the limit may be $+\\infty$ and is then never reached.`
+			},
+			{
+				title: 'Fees make every profitable cycle explode',
+				body: `A walk composes to $C(x) = Rx - c$ with $c \\ge 0$, since fees are non-negative. So a
+				 cycle is profitable exactly on the half-line $x > c/(R-1)$ — only if $R > 1$ — and once
+				 profitable, repeating it diverges. Hence any increase after $|V|-1$ rounds certifies
+				 $+\\infty$: the witnessing walk has a cycle, and were it unprofitable, removing it would lose
+				 nothing. The half-line is also why negative-cycle detection carries over: a simple path
+				 already enters the cycle high enough, so one more round flags a node on every profitable
+				 cycle, and everything reachable from a flagged node diverges.`,
+				tex: String.raw`C(x)>x\iff x>\frac{c}{R-1},\qquad R>1`
 			},
 			{
 				title: 'The feasibility rule enforces itself',
@@ -400,9 +411,10 @@ export const problems: Problem[] = [
 			},
 			{
 				title: 'Monotone in the borrowed amount, so binary search',
-				body: `A composition of non-decreasing maps is non-decreasing, so "$y$ suffices" is a
-				 monotone predicate in $y$. Binary search the least integer $y \\le x$ with
-				 $\\mathrm{BF}(y) > y$. The guarantee that the rates along any walk of length $\\le n$ multiply to
+				body: `That $\\Phi$ is non-decreasing is not enough — $\\Phi(y) > y$ need not survive a
+				 larger $y$. The half-line does it: each walk profits on an upward-closed set of amounts, so
+				 their union is one too, and "$y$ suffices" is monotone. Binary search the least integer
+				 $y \\le x$ with $\\mathrm{BF}(y) > y$. The guarantee that the rates along any walk of length $\\le n$ multiply to
 				 at most $10^{14}$ is what keeps every intermediate value inside double precision.`
 			}
 		],
